@@ -1,4 +1,6 @@
 
+
+
 document.addEventListener("DOMContentLoaded",function(){
     //Comprobamos si estamos en la pagina de visualizacion
     if(document.getElementById("documents-list")){
@@ -64,16 +66,17 @@ uploadForm.addEventListener("submit",function(event){
 //Funcion para guardar en localStorage
 
 function saveDocumentData(name,content,date){
-    let documents=JSON.parse(localStorage.getItem("documents")) || []
+   let documents=JSON.parse(localStorage.getItem("documents")) || []
     documents.unshift({name,content,date})
     localStorage.setItem("documents",JSON.stringify(documents))
+
 }
 
 
 //Funcion para cargar los documentos en la pagina de visualizacion
 
 function loadDocuments(){
-    const documentsList=document.getElementById("documents-list")
+   const documentsList= document.getElementById("documents-list")
     const documents=JSON.parse(localStorage.getItem("documents")) || []
     documentsList.innerHTML=""//limpia la lista al momento de cargar la pagina
     
@@ -91,6 +94,9 @@ function loadDocuments(){
 
         documentsList.appendChild(documentElement)
     })
+       
+
+        
 }
 
 
@@ -110,6 +116,7 @@ function searchAndDeleteDocument(){
         localStorage.setItem("documents",JSON.stringify(updateDocuments))
         alert("Documento eliminado exitosamente")
     }
+
 }
 
 /*//Cargar los documentos cuando se abre la pagina de visualizacion
