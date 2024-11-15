@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seccion para Eliminar y Subir Archivos</title>
+</head>
+<body>
+    <!--Formulario para validar Credenciales-->
+    <form action="" id="auth-form">
+        <label for="username">Usuario</label>
+        <input type="text"  id="username" required>
+        <label for="password">Contraseña</label>
+        <input type="password"  id="password">
+        <button type="submit">Ingresar</button>
+    </form>
+
+    <!--Contenedor para almacenar la seccion de subir y eliminar documentos-->
+    <div id="upload-section" style="display: none;">
+        <!--Formulario para Subir los archivos-->
+        
+        <form action="" id="upload-form">
+        <input type="file" id="file-input" accept=".docx">
+        <button type="submit">Subir Archivo</button>
+       </form>
+      
+       <!--Seccion para eliminar cada documento mediante busqueda-->
+        <form action="" id="delete-form">
+            <input type="text" id="delete-name" placeholder="Nombre del documento">
+            <button type="button" onclick="searchAndDeleteDocument()">Eliminar Archivos</button>
+        </form>
+         <a href="/documents.html">Ver Documentos almacenados en la seccion de Articulos</a>
+    </div>
+
+    <!--Script para subir y eliminar archivos-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="/formato.js"></script>
+
+</body>
+</html>
