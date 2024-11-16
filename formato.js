@@ -3,8 +3,7 @@ const API_KEY="AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw"
 const SCOPES="https://www.googleapis.com/auth/drive.file"
 
 // Almacenar el token de acceso
-let accessToken =null;
-
+let accessToken = sessionStorage.getItem("accessToken") || null;
 
 // Inicializar GIS para autenticación
 function initGoogleAPI() {
@@ -143,11 +142,12 @@ function loadDocuments(){
             files.forEach((file) => {
                 const documentElement = document.createElement("div");
                 documentElement.innerHTML = `
-                    <p>Nombre: ${file.name}</p>
-                    <p>Subido el: ${new Date(file.createdTime).toLocaleString()}</p>
+                    <p><strong>Documento:</strong> ${file.name}</p>
+                    <button onclick="viewDocument('${file.id}')">Ver Contenido</button>
                     <button onclick="deleteFile('${file.id}')">Eliminar</button>
                 `;
-                documentsList.appendChild(documentElement)
+                documentsList.appendChild(documentElement);
+                
             });
         }else {
             documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
@@ -197,11 +197,55 @@ document.addEventListener("DOMContentLoaded",function(){
     //Comprobamos si estamos en la pagina de visualizacion
     
     if(document.getElementById("documents-list")){
-      initGoogleAPI()
+        if (!accessToken) {
+            initGoogleAPI();
+        } else {
+            loadDocuments();
+        }
       
         
     }
 })
+//Ver contenido del documento
+function viewDocument(fileId) {
+    if (!accessToken) {
+        console.error("Token de acceso no válido.");
+        return;
+    }
+
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    })
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+            return mammoth
+                .convertToHtml({ arrayBuffer: buffer }, {
+                    convertImage: mammoth.images.inline((image) => {
+                        return image.read("base64").then((base64) => {
+                            return { src: `data:${image.contentType};base64,${base64}` };
+                        });
+                    }),
+                })
+                .then((result) => {
+                    const modal = document.getElementById("document-modal");
+                    modal.innerHTML = `
+                        <div class="content">
+                            ${result.value}
+                        </div>
+                    `;
+                    modal.style.display = "block";
+                });
+        })
+        .catch((err) => console.error("Error al leer el archivo de Word:", err));
+}
+
+// Cerrar modal
+function closeModal() {
+    const modal = document.getElementById("document-modal");
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
 //Funcion para buscar y eliminar documentos
 function searchAndDeleteDocument(){
     /*const deleteName=document.getElementById("delete-name").value
