@@ -1,7 +1,7 @@
 const CLIENT_ID="862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com"
 const API_KEY="AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw"
 const SCOPES="https://www.googleapis.com/auth/drive.file"
-
+const REDIRECT_URI="https://pruebalealdiaz.netlify.app"
 // Almacenar el token de acceso
 let accessToken = sessionStorage.getItem("accessToken") || null;
 
@@ -10,6 +10,7 @@ function initGoogleAPI() {
     google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
+        redirect_uri:REDIRECT_URI,
         callback: (tokenResponse) => {
             accessToken = tokenResponse.access_token;
             console.log("Autenticación exitosa");
