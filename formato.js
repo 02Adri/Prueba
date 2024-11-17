@@ -13,14 +13,23 @@ function initGoogleAPI() {
         callback: (tokenResponse) => {
             accessToken = tokenResponse.access_token;
             console.log("Autenticación exitosa");
-            if (document.getElementById("documents-list")) {
+          /*  if (document.getElementById("documents-list")) {
                 loadDocuments(); // Cargar documentos si estamos en la página de visualización
-            }
+            }*/
+           if(window.location.pathname.includes("documents.html")){
+            loadDocuments()
+           }
         },
     }).requestAccessToken();
 }
 
-
+//Guardar el token para poder utilizarlo desde multiples paginas
+function saveAccessToken(token){
+    sessionStorage.setItem("googleDriveAccessToken",token)
+}
+function getAccessToken(){
+    return sessionStorage.getItem("googleDriveAccessToken")
+}
 //Asegurarnos de los que los elementos existan
  const authForm=document.getElementById("auth-form")
  const uploadForm=document.getElementById("upload-form")
@@ -174,6 +183,7 @@ function uploadFile(file) {
         .then((res) => res.json())
         .then(() => {
             alert("Archivo subido correctamente");
+             sessionStorage.setItem("redirectFromUpload","true")            
             window.location.href = "documents.html"; // Redirigir a la página de visualización
         })
         .catch((err) => console.error("Error al subir archivo:", err));
@@ -206,6 +216,12 @@ document.addEventListener("DOMContentLoaded",function(){
         
     }
 })
+document.addEventListener("DOMContentLoaded", function () {
+    if (sessionStorage.getItem("redirectFromUpload")) {
+        sessionStorage.removeItem("redirectFromUpload");
+        loadDocuments();
+    }
+});
 //Ver contenido del documento
 function viewDocument(fileId) {
     if (!accessToken) {
