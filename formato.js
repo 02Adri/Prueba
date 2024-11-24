@@ -1,7 +1,7 @@
 const CLIENT_ID =  "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com";
 const API_KEY =  "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
 const SCOPES ="https://www.googleapis.com/auth/drive.file";
-const REDIRECT_URI =  "https://pruebalealdiaz.netlify.app/oauth2/callback";
+const REDIRECT_URI ="https://pruebalealdiaz.netlify.app/callback";
 
 // Usa CLIENT_ID, API_KEY, SCOPES y REDIRECT_URI en el resto del código.
 
