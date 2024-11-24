@@ -1,7 +1,7 @@
-const CLIENT_ID="862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com"
-const API_KEY="AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw"
-const SCOPES="https://www.googleapis.com/auth/drive.file"
-const REDIRECT_URI="https://pruebalealdiaz.netlify.app/oauth2/callback"
+const CLIENT_ID=process.env.CLIENT_ID;
+const API_KEY=process.env.API_KEY;
+const SCOPES=process.env.SCOPES;
+const REDIRECT_URI=process.env.REDIRECT_URI;
 // Almacenar el token de acceso
 let accessToken = sessionStorage.getItem("accessToken") || null;
 
@@ -58,32 +58,7 @@ function getAccessToken(){
 if(uploadForm){
 uploadForm.addEventListener("submit",function(event){
    
-/* event.preventDefault()
-    //llamamos a nuestro input de formato text
-    const fileInput=document.getElementById("file-input")
-    const file= fileInput.files[0]
-    if(file && file.type ==="application/vnd.openxmlformats-officedocument.wordprocessingml.document" ){
-        alert("El documento se subió Correctamente")
-        const reader= new FileReader()
-        reader.onload=function(e){
-            const arrayBuffer=e.target.result
-            //libreria de js que te permite gestionar archivos word
-            mammoth.convertToHtml({arrayBuffer:arrayBuffer})
-            .then(function(result){
-                const htmlContent=result.value
-                const uploadDate=new Date().toLocaleString()
-                //Funcion que almacena en el localStorage
-                saveDocumentData(file.name,htmlContent,uploadDate)
-                window.location.href="documents.html"//redirige a la pagina de visualizacion
-            })
-            .catch(function(err){
-                console.error("Error al leer el archivo de word", err)
-            })
-        }
-        reader.readAsArrayBuffer(file)
-    }else{
-        alert("Por favor, sube un archivo word en (.docx)")
-    }*/
+
         event.preventDefault();
         const fileInput = document.getElementById("file-input");
         const file = fileInput.files[0];
@@ -109,26 +84,7 @@ function saveDocumentData(name,content,date){
 //Funcion para cargar los documentos en la pagina de visualizacion
 
 function loadDocuments(){
-   /*const documentsList= document.getElementById("documents-list")
-    const documents=JSON.parse(localStorage.getItem("documents")) || []
-    documentsList.innerHTML=""//limpia la lista al momento de cargar la pagina
-    
-
-    documents.forEach(function(doc){
-        const documentElement=document.createElement("div")
-        documentElement.classList.add("document")
-        documentElement.innerHTML=doc.content
-
-        //Seccion para añadir la fecha de cuando se subio el archivo
-        const dateElement=document.createElement("p")
-        dateElement.textContent=`Subido el:${doc.date}`
-        documentElement.appendChild(dateElement)
-        
-
-        documentsList.appendChild(documentElement)
-    })
-       
- */
+ 
     const documentsList = document.getElementById("documents-list");
     if (!documentsList) {
         console.error("El contenedor de documentos no existe.");
