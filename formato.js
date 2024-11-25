@@ -35,6 +35,7 @@ function initGoogleAPI() {
 document.addEventListener("DOMContentLoaded", () => {
     const authForm = document.getElementById("auth-form");
     const uploadForm = document.getElementById("upload-form");
+    const viewDocumentsLink=document.getElementById("view-documents-link");
 
     if (authForm) {
         authForm.addEventListener("submit", (event) => {
@@ -66,7 +67,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
+      //link de documents.html
+      if(viewDocumentsLink){
+        viewDocumentsLink.addEventListener("click",(event)=>{
+            event.preventDefault();
+            window.location.href="/documents.html";
+            loadDocuments()
+        })
+      }
     // Cargar documentos si estamos en la página correspondiente
     if (window.location.pathname.includes("documents.html")) {
         if (getToken()) {
