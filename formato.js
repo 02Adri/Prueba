@@ -466,7 +466,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Manejar el evento de carga de archivos
+    if (uploadSection) {
+        const uploadForm = document.getElementById("upload-form");
+        const fileInput = document.getElementById("file-input");
+
+        uploadForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const file = fileInput.files[0];
+            if (file) {
+                uploadFile(file);
+            } else {
+                alert("Por favor selecciona un archivo para subir.");
+            }
+        });
+    }
 });
+
+
 
 // Subir archivo a Google Drive
 function uploadFile(file) {
