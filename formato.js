@@ -247,7 +247,7 @@ if(window.location.pathname.includes("documents.html")){
 }
 */
 
-
+/*
 
 const CLIENT_ID = "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com";
 const API_KEY = "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
@@ -420,3 +420,161 @@ function closeModal() {
     const modal = document.getElementById("document-modal");
     modal.style.display = "none";
 }
+*/
+
+const CLIENT_ID = "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com";
+const API_KEY = "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
+const SCOPES = "https://www.googleapis.com/auth/drive.file";
+const REDIRECT_URI = "https://pruebalealdiaz.netlify.app";
+
+// Token de acceso
+let accessToken = localStorage.getItem("googleDriveAccessToken") || null;
+
+// Inicializar Google API
+function initGoogleAPI() {
+    google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (tokenResponse) => {
+            accessToken = tokenResponse.access_token;
+            localStorage.setItem("googleDriveAccessToken", accessToken);
+            console.log("Autenticación exitosa");
+            if (window.location.pathname.includes("documents.html")) {
+                loadDocuments();
+            }
+        },
+    }).requestAccessToken();
+}
+
+// Validación de autenticación
+document.addEventListener("DOMContentLoaded", () => {
+    const authForm = document.getElementById("auth-form");
+    const uploadSection = document.getElementById("upload-section");
+
+    if (authForm) {
+        authForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            if (username === "admin" && password === "adminlaw") {
+                authForm.style.display = "none";
+                uploadSection.style.display = "block";
+                initGoogleAPI();
+            } else {
+                alert("Usuario o contraseña incorrectos");
+            }
+        });
+    }
+});
+
+// Subir archivo a Google Drive
+function uploadFile(file) {
+    const metadata = {
+        name: file.name,
+        mimeType: file.type,
+    };
+    const form = new FormData();
+    form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+    form.append("file", file);
+
+    fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form,
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            saveDocumentLocally(data.name, data.id);
+            alert("Archivo subido correctamente");
+            window.location.href = "documents.html";
+        })
+        .catch((err) => console.error("Error al subir archivo:", err));
+}
+
+// Guardar documento en localStorage
+function saveDocumentLocally(name, id) {
+    const documents = JSON.parse(localStorage.getItem("documents")) || [];
+    documents.push({ name, id });
+    localStorage.setItem("documents", JSON.stringify(documents));
+}
+
+// Cargar documentos desde localStorage
+function loadDocuments() {
+    const documentsList = document.getElementById("documents-list");
+    if (!documentsList) {
+        console.error("El contenedor de documentos no existe.");
+        return;
+    }
+
+    const documents = JSON.parse(localStorage.getItem("documents")) || [];
+    documentsList.innerHTML = "";
+
+    if (documents.length > 0) {
+        documents.forEach((doc) => {
+            const documentElement = document.createElement("div");
+            documentElement.innerHTML = `
+                <p><strong>Documento:</strong> ${doc.name}</p>
+                <button onclick="viewDocument('${doc.id}')">Ver Contenido</button>
+                <button onclick="deleteFile('${doc.id}')">Eliminar</button>
+            `;
+            documentsList.appendChild(documentElement);
+        });
+    } else {
+        documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
+    }
+}
+
+// Ver contenido del documento
+function viewDocument(fileId) {
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    })
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+            return mammoth
+                .convertToHtml({ arrayBuffer: buffer })
+                .then((result) => {
+                    const modal = document.getElementById("document-modal");
+                    modal.innerHTML = `<div class="content">${result.value}</div>`;
+                    modal.style.display = "block";
+                });
+        })
+        .catch((err) => console.error("Error al leer el archivo de Word:", err));
+}
+
+// Cerrar modal
+function closeModal() {
+    const modal = document.getElementById("document-modal");
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+// Eliminar archivo
+function deleteFile(fileId) {
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
+    })
+        .then(() => {
+            removeDocumentLocally(fileId);
+            alert("Archivo eliminado correctamente");
+            loadDocuments();
+        })
+        .catch((err) => console.error("Error al eliminar archivo:", err));
+}
+
+// Eliminar documento de localStorage
+function removeDocumentLocally(fileId) {
+    const documents = JSON.parse(localStorage.getItem("documents")) || [];
+    const updatedDocuments = documents.filter((doc) => doc.id !== fileId);
+    localStorage.setItem("documents", JSON.stringify(updatedDocuments));
+}
+
+// Cargar documentos automáticamente en `documents.html`
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.pathname.includes("documents.html")) {
+        loadDocuments();
+    }
+});
