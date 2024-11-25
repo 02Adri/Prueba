@@ -3,7 +3,7 @@ const API_KEY =  "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
 const SCOPES ="https://www.googleapis.com/auth/drive.file";
 const REDIRECT_URI ="https://pruebalealdiaz.netlify.app";
 
-// Usa CLIENT_ID, API_KEY, SCOPES y REDIRECT_URI en el resto del código.
+// Usa CLIENT_ID, API_KEY, SCOPES y REDIRECT_URI en el resto del código de igual manera.
 
 // Almacenar el token de acceso
 let accessToken = sessionStorage.getItem("accessToken") || null;
