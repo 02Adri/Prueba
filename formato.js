@@ -106,7 +106,7 @@ function loadDocuments(){
         .then((data) => {
             const files = data.files; // Accedemos a los archivos
            
-            documentsList.innerHTML = "";  // Limpiar la lista antes de agregar los archivos
+           //documentsList.innerHTML = "";  // Limpiar la lista antes de agregar los archivos
             if (files && files.length > 0) {
             files.forEach((file) => {
                 const documentElement = document.createElement("div");
