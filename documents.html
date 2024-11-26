@@ -4,16 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página de Articulos</title>
+     <link rel="stylesheet" href="/documents.css">
     <script src="/formato.js" defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 </head>
 <body>
-    <h1>Ver Articulos 2024</h1>
+    <header class="header">
+        <h1>Ver Articulos 2024</h1>
+    </header>
     
-    <div id="documents-list"></div>
-    <div id="document-modal" style="display:none;">
-        <button onclick="closeModal()">Cerrar</button>
+    <main class="main-content">
+       <section id="documents-list" class="list"></section>
+    </main>
+       
+    <div id="document-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">Cerrar</button>
+        </div>
     </div>
 </body>
 </html>
