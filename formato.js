@@ -118,7 +118,7 @@ function loadDocuments() {
         return;
     }
      const folderId="https://drive.google.com/drive/folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing"
-    fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'pageSize=10&fields=files(id,name,createdTime)`, {
+    fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name,createdTime)&key=${API_KEY}`, {
         headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.json())
