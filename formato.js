@@ -76,13 +76,13 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       }
     // Cargar documentos si estamos en la página correspondiente
-    if (window.location.pathname.includes("documents.html")) {
+  /*  if (window.location.pathname.includes("documents.html")) {
         if (getToken()) {
             loadDocuments();
         } else {
             initGoogleAPI();
         }
-    }
+    }*/
 });
 
 // Subir archivo a Google Drive
@@ -109,26 +109,7 @@ function uploadFile(file) {
         })
         .catch((err) => console.error("Error al subir archivo:", err));
 }
-// Establecer permisos públicos al archivo
-function setPublicPermission(fileId) {
-    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${getToken()}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            role: "reader",
-            type: "anyone",
-        }),
-    })
-        .then(() => {
-            alert("Archivo subido y configurado como público.");
-           window.location.href = "documents.html";
-           loadDocuments();
-        })
-        .catch((err) => console.error("Error al configurar permisos:", err));
-}
+
 
 
 // Cargar lista de documentos
