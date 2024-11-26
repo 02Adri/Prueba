@@ -2,7 +2,7 @@ const CLIENT_ID = "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleuser
 const API_KEY = "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
 const REDIRECT_URI = "https://pruebalealdiaz.netlify.app";
-
+const FOLDER_ID="folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing";
 // Guardar y recuperar tokens de localStorage
 function saveToken(token) {
     localStorage.setItem("googleDriveAccessToken", token);
@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function uploadFile(file) {
     const metadata = {
         name: file.name,
+        parents:[FOLDER_ID],
         mimeType: file.type,
     };
 
@@ -118,8 +119,8 @@ function loadDocuments() {
         return;
     }
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
-    fetch( `https://www.googleapis.com/drive/v3/files?q='https://drive.google.com/drive/folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing'%20in%20parents&fields=files(id,name)&key=${API_KEY}`, {
-       // headers: { Authorization: `Bearer ${getToken()}` },
+    fetch( `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`, {
+       headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.json())
         .then((data) => {
