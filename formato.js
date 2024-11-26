@@ -117,7 +117,7 @@ function loadDocuments() {
         console.error("El contenedor de documentos no existe.");
         return;
     }
-     const FOLDER_ID="folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing"
+     const FOLDER_ID="/folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing"
     fetch(`https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents&fields=files(id,name,webViewLink)`, {
         headers: { Authorization: `Bearer ${getToken()}` },
     })
