@@ -102,12 +102,34 @@ function uploadFile(file) {
         body: form,
     })
         .then((res) => res.json())
-        .then(() => {
-            alert("Archivo subido correctamente.");
-            window.location.href = "documents.html";
+        .then((data) => {
+            /*alert("Archivo subido correctamente.");
+            window.location.href = "documents.html";*/
+            const fileId=data.id
+            setPublicPermission(fileId)
         })
         .catch((err) => console.error("Error al subir archivo:", err));
 }
+// Establecer permisos públicos al archivo
+function setPublicPermission(fileId) {
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${getToken()}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            role: "reader",
+            type: "anyone",
+        }),
+    })
+        .then(() => {
+            alert("Archivo subido y configurado como público.");
+            window.location.href = "documents.html";
+        })
+        .catch((err) => console.error("Error al configurar permisos:", err));
+}
+
 
 // Cargar lista de documentos
 function loadDocuments() {
