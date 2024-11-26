@@ -1,4 +1,4 @@
-const CLIENT_ID = "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com";
+const CLIENT_ID = "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com"; 
 const API_KEY = "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
 const REDIRECT_URI = "https://pruebalealdiaz.netlify.app";
@@ -76,13 +76,13 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       }
     // Cargar documentos si estamos en la página correspondiente
-  /*  if (window.location.pathname.includes("documents.html")) {
+    if (window.location.pathname.includes("documents.html")) {
         if (getToken()) {
             loadDocuments();
         } else {
             initGoogleAPI();
         }
-    }*/
+    }
 });
 
 // Subir archivo a Google Drive
@@ -104,23 +104,20 @@ function uploadFile(file) {
         .then((res) => res.json())
         .then(() => {
             alert("Archivo subido correctamente.");
-            loadDocuments();
-           
+            window.location.href = "documents.html";
         })
         .catch((err) => console.error("Error al subir archivo:", err));
 }
-
-
 
 // Cargar lista de documentos
 function loadDocuments() {
     const documentsList = document.getElementById("documents-list");
 
-   /* if (!documentsList) {
+    if (!documentsList) {
         console.error("El contenedor de documentos no existe.");
         return;
-    }*/
-    
+    }
+
     fetch("https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
         headers: { Authorization: `Bearer ${getToken()}` },
     })
@@ -181,38 +178,10 @@ function closeModal() {
     modal.style.display = "none";
 }
 
-
-// Cargar lista de documentos públicamente
-function loadPublicDocuments() {
-    const documentsList = document.getElementById("documents-public-list");
-
-    fetch(`https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name)`, {
-        headers: { Authorization: `Bearer ${API_KEY}` }, // Usa la clave pública
+function viewDocument(fileId) {
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
     })
-        .then((res) => res.json())
-        .then((data) => {
-            const files = data.files;
-            documentsList.innerHTML = ""; // Limpiar lista existente
-
-            if (files && files.length > 0) {
-                files.forEach((file) => {
-                    const documentElement = document.createElement("div");
-                    documentElement.innerHTML = `
-                        <p><strong>Documento:</strong> ${file.name}</p>
-                        <button onclick="viewPublicDocument('${file.id}')">Ver Contenido</button>
-                    `;
-                    documentsList.appendChild(documentElement);
-                });
-            } else {
-                documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
-            }
-        })
-        .catch((err) => console.error("Error al cargar documentos públicos:", err));
-}
-
-// Ver contenido de un documento públicamente
-function viewPublicDocument(fileId) {
-    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`)
         .then((res) => res.arrayBuffer())
         .then((buffer) => {
             return mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
@@ -221,5 +190,5 @@ function viewPublicDocument(fileId) {
                 modal.style.display = "block";
             });
         })
-        .catch((err) => console.error("Error al leer el archivo público:", err));
+        .catch((err) => console.error("Error al leer el archivo:", err));
 }
