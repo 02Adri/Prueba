@@ -125,7 +125,8 @@ function setPublicPermission(fileId) {
     })
         .then(() => {
             alert("Archivo subido y configurado como público.");
-            window.location.href = "documents.html";
+           window.location.href = "documents.html";
+           loadDocuments();
         })
         .catch((err) => console.error("Error al configurar permisos:", err));
 }
@@ -139,8 +140,8 @@ function loadDocuments() {
         console.error("El contenedor de documentos no existe.");
         return;
     }
-     const FOLDER_ID="/folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing"
-    fetch(`https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)`, {
+    
+    fetch("https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
         headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.json())
