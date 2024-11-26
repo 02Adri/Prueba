@@ -10,18 +10,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 </head>
 <body>
-    <header class="header">
-        <h1>Ver Articulos 2024</h1>
-    </header>
-    
-    <main class="main-content">
-       <section id="documents-list" class="list"></section>
-    </main>
+     
+      <div class="container">
+        <h1 class="page-title">Ver Articulos de Abogados</h1>
+     
+        <div id="documents-list" class="documents-list"></div>
        
-    <div id="document-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">Cerrar</button>
+        <div id="document-modal" class="document-modal" style="display:none;">
+            <div class="modal-content">
+                <h2>Información del Artículo</h2>
+                <p id="modal-info">Aquí se muestra la información del artículo.</p>
+                <button class="btn-close" onclick="closeModal()">Cerrar</button>
+            </div>
         </div>
+   
+   
     </div>
+   
 </body>
 </html>
