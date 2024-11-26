@@ -135,10 +135,10 @@ function setPublicPermission(fileId) {
 function loadDocuments() {
     const documentsList = document.getElementById("documents-list");
 
-    if (!documentsList) {
+   /* if (!documentsList) {
         console.error("El contenedor de documentos no existe.");
         return;
-    }
+    }*/
     
     fetch("https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
         headers: { Authorization: `Bearer ${getToken()}` },
