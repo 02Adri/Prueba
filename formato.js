@@ -102,11 +102,10 @@ function uploadFile(file) {
         body: form,
     })
         .then((res) => res.json())
-        .then((data) => {
-            /*alert("Archivo subido correctamente.");
-            window.location.href = "documents.html";*/
-            const fileId=data.id
-            setPublicPermission(fileId)
+        .then(() => {
+            alert("Archivo subido correctamente.");
+            loadDocuments();
+           
         })
         .catch((err) => console.error("Error al subir archivo:", err));
 }
@@ -202,3 +201,44 @@ function closeModal() {
 }
 
 
+// Cargar lista de documentos públicamente
+function loadPublicDocuments() {
+    const documentsList = document.getElementById("documents-public-list");
+
+    fetch(`https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${API_KEY}` }, // Usa la clave pública
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            const files = data.files;
+            documentsList.innerHTML = ""; // Limpiar lista existente
+
+            if (files && files.length > 0) {
+                files.forEach((file) => {
+                    const documentElement = document.createElement("div");
+                    documentElement.innerHTML = `
+                        <p><strong>Documento:</strong> ${file.name}</p>
+                        <button onclick="viewPublicDocument('${file.id}')">Ver Contenido</button>
+                    `;
+                    documentsList.appendChild(documentElement);
+                });
+            } else {
+                documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
+            }
+        })
+        .catch((err) => console.error("Error al cargar documentos públicos:", err));
+}
+
+// Ver contenido de un documento públicamente
+function viewPublicDocument(fileId) {
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`)
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+            return mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
+                const modal = document.getElementById("document-modal");
+                modal.innerHTML = `<div class="content">${result.value}</div>`;
+                modal.style.display = "block";
+            });
+        })
+        .catch((err) => console.error("Error al leer el archivo público:", err));
+}

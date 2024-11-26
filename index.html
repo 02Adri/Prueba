@@ -19,6 +19,8 @@
         <label for="password">Contraseña</label>
         <input type="password"  id="password">
         <button type="submit" class="btn">Ingresar</button>
+
+        <a href="/documents.html" id="view-documents-link" class="link">Ver Documentos almacenados en la seccion de Articulos</a>
     </form>
 
     <!--Contenedor para almacenar la seccion de subir y eliminar documentos-->
@@ -29,10 +31,8 @@
         <input type="file" id="file-input" accept=".docx">
         <button type="submit" class="btn">Subir Archivo</button>
        </form>
-      
-      
-         <a href="/documents.html" id="view-documents-link" class="link">Ver Documentos almacenados en la seccion de Articulos</a>
-    </div>
+       <div id="documents-list" class="documents-list"></div>
+ </div>
    
    </div>
     <!--Script para subir y eliminar archivos-->
