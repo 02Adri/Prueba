@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function uploadFile(file) {
     const metadata = {
         name: file.name,
-        parents:[FOLDER_ID],
+      //  parents:[FOLDER_ID],
         mimeType: file.type,
     };
 
@@ -103,10 +103,26 @@ function uploadFile(file) {
         body: form,
     })
         .then((res) => res.json())
-        .then(() => {
-            alert("Archivo subido correctamente.");
-            window.location.href = "documents.html";
+        .then((fileData) => {
+            //Configurar permisos publicos
+            fetch(`https://www.googleapis.com/drive/v3/files/${fileData.id}/permissions`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${getToken()}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    role: "reader",
+                    type: "anyone",
+                }),
+            })
+            .then(() => {
+                alert("Archivo subido y configurado como público correctamente.");
+                window.location.href = "documents.html";
+            })
+            .catch((err) => console.error("Error al configurar permisos:", err));
         })
+        
         .catch((err) => console.error("Error al subir archivo:", err));
 }
 
@@ -119,7 +135,8 @@ function loadDocuments() {
         return;
     }
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
-    fetch( `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`, {
+     /*  `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`*/
+    fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
        headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.json())
