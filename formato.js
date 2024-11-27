@@ -137,7 +137,7 @@ function loadDocuments() {
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
      /*  `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`*/
     fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
-       headers: { Authorization: `Bearer ${getToken()}` },
+       headers: { Authorization: `Bearer ${API_KEY}` },
     })
         .then((res) => res.json())
         .then((data) => {
@@ -164,7 +164,7 @@ function loadDocuments() {
 // Ver contenido de un documento
 function viewDocument(fileId) {
     fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: { Authorization: `Bearer ${API_KEY}` },
     })
         .then((res) => res.arrayBuffer())
         .then((buffer) => {
