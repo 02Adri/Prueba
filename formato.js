@@ -101,7 +101,7 @@ function uploadFile(file) {
 
     fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
         method: "POST",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: { Authorization: `Bearer ${tokenClient.token}` },
         body: form,
     })
         .then((res) => res.json())
@@ -173,7 +173,7 @@ function loadDocuments() {
     
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
      /*  `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`*/
-   fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
+   fetch( "https://www.googleapis.com/drive/v3/files?q=visibility='anyoneWithLink'", {
        headers: { Authorization: `Bearer ${tokenClient.token}` },
     })
         .then((res) => res.json())
