@@ -3,6 +3,7 @@ const API_KEY = "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
 const SCOPES ="https://www.googleapis.com/auth/drive.file";
 const REDIRECT_URI = "https://pruebalealdiaz.netlify.app";
 const FOLDER_ID="folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing";
+let tokenClient;
 // Guardar y recuperar tokens de localStorage
 function saveToken(token) {
     localStorage.setItem("googleDriveAccessToken", token);
@@ -14,7 +15,7 @@ function getToken() {
 
 // Inicializar Google API
 function initGoogleAPI() {
-   const tokenClient = google.accounts.oauth2.initTokenClient({
+    tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         redirect_uri: REDIRECT_URI,
