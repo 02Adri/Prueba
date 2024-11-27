@@ -1,6 +1,6 @@
 const CLIENT_ID = "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com"; 
 const API_KEY = "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
-const SCOPES ="https://www.googleapis.com/auth/drive.readonly";/*"https://www.googleapis.com/auth/drive.file"*/ 
+const SCOPES ="https://www.googleapis.com/auth/drive.file";
 const REDIRECT_URI = "https://pruebalealdiaz.netlify.app";
 const FOLDER_ID="folders/1hayT2TtGlp27YGEwPyQrocwUr1FzXc4Z?usp=sharing";
 // Guardar y recuperar tokens de localStorage
@@ -14,7 +14,7 @@ function getToken() {
 
 // Inicializar Google API
 function initGoogleAPI() {
-  /*  const tokenClient = google.accounts.oauth2.initTokenClient({
+   const tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         redirect_uri: REDIRECT_URI,
@@ -28,17 +28,8 @@ function initGoogleAPI() {
         },
     });
 
-    tokenClient.requestAccessToken();*/
-    gapi.load("client:auth2", () => {
-        gapi.client.init({
-            apiKey: API_KEY,
-            clientId: CLIENT_ID,
-            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-            scope: SCOPES,
-        }).then(() => {
-            loadDocuments();
-        });
-    });
+    tokenClient.requestAccessToken();
+   
 }
 
 // Validación de autenticación
@@ -114,30 +105,46 @@ function uploadFile(file) {
     })
         .then((res) => res.json())
         .then((fileData) => {
-            //Configurar permisos publicos
-            fetch(`https://www.googleapis.com/drive/v3/files/${fileData.id}/permissions`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${getToken()}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    role: "reader",
-                    type: "anyone",
-                }),
-            })
-            .then(() => {
-                alert("Archivo subido y configurado como público correctamente.");
-                window.location.href = "documents.html";
-            })
-            .catch((err) => console.error("Error al configurar permisos:", err));
+            makeFilePublic(fileData.id);
+            
+              /*  alert("Archivo subido y configurado como público correctamente.");
+                window.location.href = "documents.html";*/
+           
         })
         
         .catch((err) => console.error("Error al subir archivo:", err));
 }
 
+//hacer publico el archivo de google drive
+function  makeFilePublic(fileId){
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${getToken()}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            role: "reader",
+            type: "anyone",
+        }),
+    })
+        .then(() => {
+            console.log("Archivo hecho público.");
+            alert("Archivo subido correctamente y disponible para todos.");
+            saveFileToDatabase(fileId);
+        })
+        .catch((err) => console.error("Error al hacer público el archivo:", err));
+}
+//Guardamos el ID del archivo en una base de datos Simple
+function saveFileToDatabase(fileId) {
+    let fileDatabase = JSON.parse(localStorage.getItem("fileDatabase")) || [];
+    fileDatabase.push(fileId);
+    localStorage.setItem("fileDatabase", JSON.stringify(fileDatabase));
+    window.location.href = "documents.html";
+}
 // Cargar lista de documentos
 function loadDocuments() {
+    const fileDatabase = JSON.parse(localStorage.getItem("fileDatabase")) || [];
     const documentsList = document.getElementById("documents-list");
 
     if (!documentsList) {
@@ -145,30 +152,26 @@ function loadDocuments() {
         return;
     }
 
-    gapi.client.drive.files.list({
-        pageSize: 10,
-        fields: "files(id, name, createdTime)",
-        q: "'me' in owners and trashed = false", // Cargar solo documentos del usuario autenticado
-    }).then((response) => {
-        const files = response.result.files;
-        documentsList.innerHTML = ""; // Limpiar lista existente
+    documentsList.innerHTML = "";
 
-        if (files && files.length > 0) {
-            files.forEach((file) => {
-                const documentElement = document.createElement("div");
-                documentElement.innerHTML = `
-                    <p><strong>Documento:</strong> ${file.name}</p>
-                    <button onclick="viewDocument('${file.id}')">Ver Contenido</button>
-                `;
-                documentsList.appendChild(documentElement);
-            });
-        } else {
-            documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
-        }
-    }).catch((err) => console.error("Error al cargar documentos:", err));
+    if (fileDatabase.length > 0) {
+        fileDatabase.forEach((fileId) => {
+            const documentElement = document.createElement("div");
+            documentElement.innerHTML = `
+                <p><strong>Documento:</strong> ID ${fileId}</p>
+                <button onclick="viewDocument('${fileId}')">Ver Contenido</button>
+                 <button onclick="deleteFile('${file.id}')">Eliminar</button>
+            `;
+            documentsList.appendChild(documentElement);
+        });
+    } else {
+        documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
+    }
+
+    
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
      /*  `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`*/
-   /* fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
+  /*  fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
        headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.json())
@@ -196,18 +199,8 @@ function loadDocuments() {
 // Ver contenido de un documento
 function viewDocument(fileId) {
 
-    gapi.client.drive.files.get({
-        fileId: fileId,
-        alt: "media",
-    }).then((response) => {
-        const buffer = response.body;
-        mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
-            const modal = document.getElementById("document-modal");
-            modal.innerHTML = `<div class="content">${result.value}</div>`;
-            modal.style.display = "block";
-        });
-    }).catch((err) => console.error("Error al leer el archivo:", err));
-  /*  fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    
+   fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
         headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.arrayBuffer())
@@ -218,7 +211,7 @@ function viewDocument(fileId) {
                 modal.style.display = "block";
             });
         })
-        .catch((err) => console.error("Error al leer el archivo:", err));*/
+        .catch((err) => console.error("Error al leer el archivo:", err));
 }
 
 // Eliminar archivo
