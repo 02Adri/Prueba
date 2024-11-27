@@ -101,14 +101,14 @@ function uploadFile(file) {
 
     fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
         method: "POST",
-        headers: { Authorization: `Bearer ${tokenClient.token}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
         body: form,
     })
         .then((res) => res.json())
         .then((fileData) => {
             makeFilePublic(fileData.id);
             
-              /*  alert("Archivo subido y configurado como público correctamente.");
+              /* alert("Archivo subido y configurado como público correctamente.");
                 window.location.href = "documents.html";*/
            
         })
@@ -173,8 +173,8 @@ function loadDocuments() {
     
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
      /*  `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`*/
-   fetch( "https://www.googleapis.com/drive/v3/files?q=visibility='anyoneWithLink'", {
-       headers: { Authorization: `Bearer ${tokenClient.token}` },
+   fetch( 'https://www.googleapis.com/drive/v3/files', {
+       headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.json())
         .then((data) => {
@@ -198,12 +198,12 @@ function loadDocuments() {
         .catch((err) => console.error("Error al cargar documentos:", err));
 }
 
-// Ver contenido de un documento
+//Ver contenido de un documento
 function viewDocument(fileId) {
 
     
    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-        headers: { Authorization: `Bearer ${tokenClient.token}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.arrayBuffer())
         .then((buffer) => {
@@ -249,3 +249,25 @@ function viewDocument(fileId) {
         })
         .catch((err) => console.error("Error al leer el archivo:", err));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
