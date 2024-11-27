@@ -14,7 +14,7 @@ function getToken() {
 
 // Inicializar Google API
 function initGoogleAPI() {
-    const tokenClient = google.accounts.oauth2.initTokenClient({
+  /*  const tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         redirect_uri: REDIRECT_URI,
@@ -28,7 +28,17 @@ function initGoogleAPI() {
         },
     });
 
-    tokenClient.requestAccessToken();
+    tokenClient.requestAccessToken();*/
+    gapi.load("client:auth2", () => {
+        gapi.client.init({
+            apiKey: API_KEY,
+            clientId: CLIENT_ID,
+            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+            scope: SCOPES,
+        }).then(() => {
+            loadDocuments();
+        });
+    });
 }
 
 // Validación de autenticación
@@ -134,9 +144,31 @@ function loadDocuments() {
         console.error("El contenedor de documentos no existe.");
         return;
     }
+
+    gapi.client.drive.files.list({
+        pageSize: 10,
+        fields: "files(id, name, createdTime)",
+        q: "'me' in owners and trashed = false", // Cargar solo documentos del usuario autenticado
+    }).then((response) => {
+        const files = response.result.files;
+        documentsList.innerHTML = ""; // Limpiar lista existente
+
+        if (files && files.length > 0) {
+            files.forEach((file) => {
+                const documentElement = document.createElement("div");
+                documentElement.innerHTML = `
+                    <p><strong>Documento:</strong> ${file.name}</p>
+                    <button onclick="viewDocument('${file.id}')">Ver Contenido</button>
+                `;
+                documentsList.appendChild(documentElement);
+            });
+        } else {
+            documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
+        }
+    }).catch((err) => console.error("Error al cargar documentos:", err));
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
      /*  `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`*/
-    fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
+   /* fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
        headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.json())
@@ -158,12 +190,24 @@ function loadDocuments() {
                 documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
             }
         })
-        .catch((err) => console.error("Error al cargar documentos:", err));
+        .catch((err) => console.error("Error al cargar documentos:", err));*/
 }
 
 // Ver contenido de un documento
 function viewDocument(fileId) {
-    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+
+    gapi.client.drive.files.get({
+        fileId: fileId,
+        alt: "media",
+    }).then((response) => {
+        const buffer = response.body;
+        mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
+            const modal = document.getElementById("document-modal");
+            modal.innerHTML = `<div class="content">${result.value}</div>`;
+            modal.style.display = "block";
+        });
+    }).catch((err) => console.error("Error al leer el archivo:", err));
+  /*  fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
         headers: { Authorization: `Bearer ${getToken()}` },
     })
         .then((res) => res.arrayBuffer())
@@ -174,7 +218,7 @@ function viewDocument(fileId) {
                 modal.style.display = "block";
             });
         })
-        .catch((err) => console.error("Error al leer el archivo:", err));
+        .catch((err) => console.error("Error al leer el archivo:", err));*/
 }
 
 // Eliminar archivo
