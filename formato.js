@@ -160,7 +160,7 @@ function loadDocuments() {
             documentElement.innerHTML = `
                 <p><strong>Documento:</strong> ID ${fileId}</p>
                 <button onclick="viewDocument('${fileId}')">Ver Contenido</button>
-                 <button onclick="deleteFile('${file.id}')">Eliminar</button>
+                 <button onclick="deleteFile('${fileId}')">Eliminar</button>
             `;
             documentsList.appendChild(documentElement);
         });
