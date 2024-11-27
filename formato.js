@@ -120,7 +120,7 @@ function  makeFilePublic(fileId){
     fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
         method: "POST",
         headers: {
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${tokenClient.token}`,
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -131,7 +131,8 @@ function  makeFilePublic(fileId){
         .then(() => {
             console.log("Archivo hecho público.");
             alert("Archivo subido correctamente y disponible para todos.");
-            saveFileToDatabase(fileId);
+            //saveFileToDatabase(fileId);
+            loadDocuments();
         })
         .catch((err) => console.error("Error al hacer público el archivo:", err));
 }
@@ -144,7 +145,7 @@ function saveFileToDatabase(fileId) {
 }
 // Cargar lista de documentos
 function loadDocuments() {
-    const fileDatabase = JSON.parse(localStorage.getItem("fileDatabase")) || [];
+  //  const fileDatabase = JSON.parse(localStorage.getItem("fileDatabase")) || [];
     const documentsList = document.getElementById("documents-list");
 
     if (!documentsList) {
@@ -154,7 +155,7 @@ function loadDocuments() {
 
     documentsList.innerHTML = "";
 
-    if (fileDatabase.length > 0) {
+  /*  if (fileDatabase.length > 0) {
         fileDatabase.forEach((fileId) => {
             const documentElement = document.createElement("div");
             documentElement.innerHTML = `
@@ -166,13 +167,13 @@ function loadDocuments() {
         });
     } else {
         documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
-    }
+    }*/
 
     
        /*"https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)"*/ 
      /*  `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'%20in%20parents&fields=files(id,name,createdTime)`*/
-  /*  fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
-       headers: { Authorization: `Bearer ${getToken()}` },
+   fetch( "https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,createdTime)", {
+       headers: { Authorization: `Bearer ${tokenClient.token}` },
     })
         .then((res) => res.json())
         .then((data) => {
@@ -193,7 +194,7 @@ function loadDocuments() {
                 documentsList.innerHTML = `<p>No se encontraron documentos.</p>`;
             }
         })
-        .catch((err) => console.error("Error al cargar documentos:", err));*/
+        .catch((err) => console.error("Error al cargar documentos:", err));
 }
 
 // Ver contenido de un documento
@@ -201,7 +202,7 @@ function viewDocument(fileId) {
 
     
    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: { Authorization: `Bearer ${tokenClient.token}` },
     })
         .then((res) => res.arrayBuffer())
         .then((buffer) => {
