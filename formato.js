@@ -259,12 +259,12 @@ function viewDocument(fileId) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-    const uploadForm = document.getElementById("upload-form");
     const authForm = document.getElementById("auth-form");
+    const uploadForm = document.getElementById("upload-form");
     const viewDocumentsLink = document.getElementById("view-documents-link");
     const documentsList = document.getElementById("documents-list");
-    
-    // Autenticación simple
+
+    // Autenticación
     if (authForm) {
         authForm.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -273,14 +273,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (username === "admin" && password === "adminlaw") {
                 document.getElementById("upload-section").style.display = "block";
-                document.getElementById("auth-form").style.display = "none";
+                authForm.style.display = "none";
             } else {
                 alert("Usuario o contraseña incorrectos.");
             }
         });
     }
 
-    // Subir archivo y simular almacenamiento en carpeta `articulos`
+    // Subir Archivos
     if (uploadForm) {
         uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -292,72 +292,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = () => {
-                const blob = new Blob([reader.result], { type: file.type });
-                const fileUrl = URL.createObjectURL(blob); // URL temporal del archivo
-                saveDocument(file.name, fileUrl);
-                alert("Archivo subido correctamente.");
-            };
-
-            reader.readAsArrayBuffer(file);
+            alert("Sube el archivo manualmente a la carpeta 'articulos'.");
         });
     }
 
-    // Mostrar documentos al hacer clic
-    if (viewDocumentsLink) {
-        viewDocumentsLink.addEventListener("click", (event) => {
-            event.preventDefault();
-            loadDocuments();
-            window.location.href = "/documents.html";
-        });
-    }
+    // Ver Documentos
+    if (documentsList) {
+        fetch("articulos/")
+            .then((response) => response.text())
+            .then((html) => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const links = Array.from(doc.querySelectorAll("a"));
 
-    loadDocuments();
+                links.forEach((link) => {
+                    const fileName = link.textContent;
+                    if (fileName.endsWith(".pdf") || fileName.endsWith(".docx") || fileName.endsWith(".txt")) {
+                        const documentElement = document.createElement("div");
+                        documentElement.innerHTML = `
+                            <p>${fileName}</p>
+                            <iframe src="articulos/${fileName}" width="100%" height="500px"></iframe>
+                        `;
+                        documentsList.appendChild(documentElement);
+                    }
+                });
+            })
+            .catch((error) => console.error("Error al cargar documentos:", error));
+    }
 });
 
-// Guardar documentos en el navegador (simulación de carpeta 'articulos')
-function saveDocument(fileName, fileUrl) {
-    let documents = JSON.parse(localStorage.getItem("documents")) || [];
-    documents.push({ name: fileName, url: fileUrl });
-    localStorage.setItem("documents", JSON.stringify(documents));
-}
-
-// Cargar documentos desde localStorage
-function loadDocuments() {
-    const documentsList = document.getElementById("documents-list");
-    documentsList.innerHTML = ''; // Limpiar la lista antes de cargar
-
-    const documents = JSON.parse(localStorage.getItem("documents")) || [];
-    documents.forEach(doc => {
-        const documentElement = document.createElement("div");
-        documentElement.innerHTML = `
-            <p>${doc.name}</p>
-            <button onclick="viewDocument('${doc.url}')">Ver</button>
-        `;
-        documentsList.appendChild(documentElement);
-    });
-}
-
-// Ver contenido del documento
-function viewDocument(filePath) {
-    fetch(filePath)
-        .then((res) => res.arrayBuffer())
-        .then((buffer) => {
-            return mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
-                const modal = document.getElementById("document-modal");
-                modal.style.display = "block";
-                document.getElementById("document-content").innerHTML = result.value;
-            });
-        })
-        .catch((err) => console.error("Error al leer el documento:", err));
-}
-
-// Cerrar modal
+// Cerrar Modal
 function closeModal() {
     const modal = document.getElementById("document-modal");
     modal.style.display = "none";
 }
+
 
 
 
