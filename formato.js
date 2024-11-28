@@ -258,13 +258,14 @@ function viewDocument(fileId) {
 
 
 
-// Subir archivo
 document.addEventListener("DOMContentLoaded", () => {
     const uploadForm = document.getElementById("upload-form");
-     const authForm = document.getElementById("auth-form");
-      const viewDocumentsLink=document.getElementById("view-documents-link");
+    const authForm = document.getElementById("auth-form");
+    const viewDocumentsLink = document.getElementById("view-documents-link");
     const documentsList = document.getElementById("documents-list");
-     if (authForm) {
+
+    // Autenticación básica
+    if (authForm) {
         authForm.addEventListener("submit", (event) => {
             event.preventDefault();
             const username = document.getElementById("username").value;
@@ -272,94 +273,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (username === "admin" && password === "adminlaw") {
                 document.getElementById("upload-section").style.display = "block";
-                document.getElementById("auth-form").style.display = "none";
-                initGoogleAPI();
+                authForm.style.display = "none";
             } else {
                 alert("Usuario o contraseña incorrectos.");
             }
         });
     }
 
+    // Subir archivos
     if (uploadForm) {
         uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
-        
+
             const fileInput = document.getElementById("file-input");
             const file = fileInput.files[0];
-        
+
             if (!file) {
                 alert("Por favor selecciona un archivo.");
                 return;
             }
-        
-            const reader = new FileReader();
-            reader.onload = () => {
-                const blob = new Blob([reader.result], { type: file.type });
-                const anchor = document.createElement("a");
-                anchor.href = URL.createObjectURL(blob);
-                anchor.download = `articulos/${file.name}`;
-                anchor.click();
-                alert("Archivo subido correctamente.");
-            };
-        
-            reader.readAsArrayBuffer(file);
+
+            // Guardar archivo en la carpeta `articulos`
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/public/articulos", {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    alert("Archivo subido correctamente.");
+                })
+                .catch((error) => {
+                    console.error("Error al subir archivo:", error);
+                });
         });
-        
-       
     }
-    //link de documents.html
-      if(viewDocumentsLink){
-        viewDocumentsLink.addEventListener("click",(event)=>{
-            event.preventDefault();
-            window.location.href="/documents.html";
-            loadDocuments()
-        })
-      }
 
+    // Cargar documentos en documents.html
     if (documentsList) {
-        loadDocuments();
-    }
-});
-
-
-document.addEventListener("DOMContentLoaded", () => {
-    const documentsList = document.getElementById("documents-list");
-
-    // Cargar documentos de la carpeta `articulos`
-    fetch("articulos/")
-        .then((response) => response.text())
-        .then((html) => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-            const links = Array.from(doc.querySelectorAll("a"));
-
-            links.forEach((link) => {
-                if (link.href.endsWith(".docx")) {
-                    const fileName = link.textContent;
+        fetch("/public/articulos")
+            .then((response) => response.json())
+            .then((files) => {
+                files.forEach((file) => {
                     const documentElement = document.createElement("div");
                     documentElement.innerHTML = `
-                        <p>${fileName}</p>
-                        <button onclick="viewDocument('articulos/${fileName}')">Ver</button>
+                        <p>${file.name}</p>
+                        <button onclick="viewDocument('/articulos/${file.name}')">Ver</button>
                     `;
                     documentsList.appendChild(documentElement);
-                }
-            });
-        })
-        .catch((error) => console.error("Error al cargar documentos:", error));
+                });
+            })
+            .catch((error) => console.error("Error al cargar documentos:", error));
+    }
 });
 
-// Ver contenido del documento
+// Ver documento en el modal
 function viewDocument(filePath) {
     fetch(filePath)
-        .then((res) => res.arrayBuffer())
-        .then((buffer) => {
-            return mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
-                const modal = document.getElementById("document-modal");
-                modal.style.display = "block";
-                document.getElementById("document-content").innerHTML = result.value;
-            });
+        .then((response) => response.text())
+        .then((content) => {
+            const modal = document.getElementById("document-modal");
+            modal.style.display = "block";
+            document.getElementById("document-content").innerHTML = content;
         })
-        .catch((err) => console.error("Error al leer el documento:", err));
+        .catch((error) => console.error("Error al visualizar el documento:", error));
 }
 
 // Cerrar modal
@@ -367,6 +346,7 @@ function closeModal() {
     const modal = document.getElementById("document-modal");
     modal.style.display = "none";
 }
+
 
 
 
