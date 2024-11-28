@@ -281,17 +281,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (uploadForm) {
-        uploadForm.addEventListener("submit", (event) => {
+        uploadForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             const fileInput = document.getElementById("file-input");
             const file = fileInput.files[0];
 
-            if (file) {
-                saveFile(file);
-            } else {
-                alert("Selecciona un archivo para subir.");
+            if (!file) {
+                //saveFile(file);
+                alert("Selecciona un archivo antes de subir.");
+                return;
+            } 
+            const formData = new FormData();
+            formData.append("file", file);
+      
+            try {
+              // Subir archivo usando fetch
+              const response = await fetch("./articulos/" + file.name, {
+                method: "POST",
+                body: formData,
+              });
+      
+              if (response.ok) {
+                alert("Archivo subido correctamente.");
+                fileInput.value = "";
+              } else {
+                alert("Error al subir el archivo.");
+              }
+            } catch (err) {
+              console.error("Error al subir archivo:", err);
+              alert("Error al subir el archivo.");
             }
-        });
+           });
+       
     }
     //link de documents.html
       if(viewDocumentsLink){
@@ -306,6 +327,43 @@ document.addEventListener("DOMContentLoaded", () => {
         loadDocuments();
     }
 });
+
+
+const documentsList = document.getElementById("documents-list");
+
+    async function loadDocuments() {
+      try {
+        // Obtener la lista de archivos de la carpeta 'articulos'
+        const response = await fetch("./articulos/");
+        const text = await response.text();
+
+        // Parsear el contenido como una lista de enlaces
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "text/html");
+        const links = Array.from(doc.querySelectorAll("a"))
+          .filter((link) => !link.href.endsWith("/"));
+
+        if (links.length > 0) {
+          links.forEach((link) => {
+            const fileName = link.textContent;
+            const documentElement = document.createElement("div");
+            documentElement.innerHTML = `
+              <p><strong>${fileName}</strong></p>
+              <a href="./articulos/${fileName}" target="_blank">Ver Documento</a>
+            `;
+            documentsList.appendChild(documentElement);
+          });
+        } else {
+          documentsList.innerHTML = "<p>No se encontraron documentos.</p>";
+        }
+      } catch (err) {
+        console.error("Error al cargar documentos:", err);
+        documentsList.innerHTML = "<p>Error al cargar los documentos.</p>";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDocuments);
+
 
 // Guardar archivo en la carpeta "articulos"
 function saveFile(file) {
@@ -330,7 +388,7 @@ function saveFile(file) {
 }
 
 // Cargar documentos desde la carpeta "articulos"
-function loadDocuments() {
+/*function loadDocuments() {
     const savedFiles = JSON.parse(localStorage.getItem("savedFiles")) || [];
     const documentsList = document.getElementById("documents-list");
 
@@ -357,7 +415,7 @@ function viewDocument(content) {
     const newWindow = window.open("", "_blank");
     newWindow.document.write(`<iframe style="width: 100%; height: 100%;" src="${content}"></iframe>`);
 }
-
+*/
 
 
 
