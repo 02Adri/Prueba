@@ -263,8 +263,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const authForm = document.getElementById("auth-form");
     const viewDocumentsLink = document.getElementById("view-documents-link");
     const documentsList = document.getElementById("documents-list");
-
-    // Autenticación básica
+    
+    // Autenticación simple
     if (authForm) {
         authForm.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -273,18 +273,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (username === "admin" && password === "adminlaw") {
                 document.getElementById("upload-section").style.display = "block";
-                authForm.style.display = "none";
+                document.getElementById("auth-form").style.display = "none";
             } else {
                 alert("Usuario o contraseña incorrectos.");
             }
         });
     }
 
-    // Subir archivos
+    // Subir archivo y simular almacenamiento en carpeta `articulos`
     if (uploadForm) {
         uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
-
             const fileInput = document.getElementById("file-input");
             const file = fileInput.files[0];
 
@@ -293,52 +292,65 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Guardar archivo en la carpeta `articulos`
-            const formData = new FormData();
-            formData.append("file", file);
+            const reader = new FileReader();
+            reader.onload = () => {
+                const blob = new Blob([reader.result], { type: file.type });
+                const fileUrl = URL.createObjectURL(blob); // URL temporal del archivo
+                saveDocument(file.name, fileUrl);
+                alert("Archivo subido correctamente.");
+            };
 
-            fetch("/public/articulos", {
-                method: "POST",
-                body: formData,
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    alert("Archivo subido correctamente.");
-                })
-                .catch((error) => {
-                    console.error("Error al subir archivo:", error);
-                });
+            reader.readAsArrayBuffer(file);
         });
     }
 
-    // Cargar documentos en documents.html 2.0
-    if (documentsList) {
-        fetch("/public/articulos")
-            .then((response) => response.json())
-            .then((files) => {
-                files.forEach((file) => {
-                    const documentElement = document.createElement("div");
-                    documentElement.innerHTML = `
-                        <p>${file.name}</p>
-                        <button onclick="viewDocument('/articulos/${file.name}')">Ver</button>
-                    `;
-                    documentsList.appendChild(documentElement);
-                });
-            })
-            .catch((error) => console.error("Error al cargar documentos:", error));
+    // Mostrar documentos al hacer clic
+    if (viewDocumentsLink) {
+        viewDocumentsLink.addEventListener("click", (event) => {
+            event.preventDefault();
+            loadDocuments();
+            window.location.href = "/documents.html";
+        });
     }
+
+    loadDocuments();
 });
 
-// Ver documento en el modal
+// Guardar documentos en el navegador (simulación de carpeta 'articulos')
+function saveDocument(fileName, fileUrl) {
+    let documents = JSON.parse(localStorage.getItem("documents")) || [];
+    documents.push({ name: fileName, url: fileUrl });
+    localStorage.setItem("documents", JSON.stringify(documents));
+}
+
+// Cargar documentos desde localStorage
+function loadDocuments() {
+    const documentsList = document.getElementById("documents-list");
+    documentsList.innerHTML = ''; // Limpiar la lista antes de cargar
+
+    const documents = JSON.parse(localStorage.getItem("documents")) || [];
+    documents.forEach(doc => {
+        const documentElement = document.createElement("div");
+        documentElement.innerHTML = `
+            <p>${doc.name}</p>
+            <button onclick="viewDocument('${doc.url}')">Ver</button>
+        `;
+        documentsList.appendChild(documentElement);
+    });
+}
+
+// Ver contenido del documento
 function viewDocument(filePath) {
     fetch(filePath)
-        .then((response) => response.text())
-        .then((content) => {
-            const modal = document.getElementById("document-modal");
-            modal.style.display = "block";
-            document.getElementById("document-content").innerHTML = content;
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+            return mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
+                const modal = document.getElementById("document-modal");
+                modal.style.display = "block";
+                document.getElementById("document-content").innerHTML = result.value;
+            });
         })
-        .catch((error) => console.error("Error al visualizar el documento:", error));
+        .catch((err) => console.error("Error al leer el documento:", err));
 }
 
 // Cerrar modal
