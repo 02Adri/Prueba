@@ -254,86 +254,83 @@ function viewDocument(fileId) {
 
 */
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
-    const authForm = document.getElementById("auth-form");
     const uploadForm = document.getElementById("upload-form");
+    const authForm = document.getElementById("auth-form");
+    const viewDocumentsLink = document.getElementById("view-documents-link");
     const documentsList = document.getElementById("documents-list");
 
-    const uploadedDocuments = []; // Array para almacenar archivos subidos en memoria
+    // Autenticación
+    if (authForm) {
+        authForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
 
-    // Manejo de autenticación
-    authForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-
-        if (username === "admin" && password === "adminlaw") {
-            document.getElementById("upload-section").style.display = "block";
-            document.getElementById("auth-section").style.display = "none";
-        } else {
-            alert("Usuario o contraseña incorrectos.");
-        }
-    });
-
-    // Manejo de subida de documentos
-    uploadForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const fileInput = document.getElementById("file-input");
-        const file = fileInput.files[0];
-
-        if (!file) {
-            alert("Por favor selecciona un archivo.");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            const fileData = reader.result;
-            uploadedDocuments.push({ name: file.name, data: fileData });
-            displayDocuments();
-            alert("Documento subido correctamente.");
-        };
-        reader.readAsArrayBuffer(file);
-    });
-
-    // Mostrar lista de documentos
-    function displayDocuments() {
-        documentsList.innerHTML = ""; // Limpiar lista
-        uploadedDocuments.forEach((doc, index) => {
-            const documentElement = document.createElement("div");
-            documentElement.innerHTML = `
-                <p><strong>${doc.name}</strong></p>
-                <button onclick="viewDocument(${index})">Ver</button>
-            `;
-            documentsList.appendChild(documentElement);
+            if (username === "admin" && password === "adminlaw") {
+                document.getElementById("upload-section").style.display = "block";
+                authForm.style.display = "none";
+            } else {
+                alert("Usuario o contraseña incorrectos.");
+            }
         });
     }
 
-    // Visualizar documento usando Mammoth.js
-    window.viewDocument = (index) => {
-        const doc = uploadedDocuments[index];
-        const arrayBuffer = doc.data;
+    // Subir documentos
+    if (uploadForm) {
+        uploadForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const fileInput = document.getElementById("file-input");
+            const file = fileInput.files[0];
 
-        mammoth.convertToHtml({ arrayBuffer })
-            .then((result) => {
-                const modal = document.getElementById("document-modal");
-                modal.style.display = "block";
-                document.getElementById("document-content").innerHTML = result.value;
+            if (!file) {
+                alert("Por favor selecciona un archivo.");
+                return;
+            }
+
+            // Crear enlace de descarga para el archivo
+            const filePath = `articulos/${file.name}`;
+            const anchor = document.createElement("a");
+            anchor.href = filePath;
+            anchor.download = file.name;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+
+            alert("Archivo subido correctamente.");
+        });
+    }
+
+    // Cargar documentos
+    if (documentsList) {
+        fetch("articulos/")
+            .then((response) => response.text())
+            .then((html) => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const links = Array.from(doc.querySelectorAll("a"));
+
+                links.forEach((link) => {
+                    if (link.href.endsWith(".docx") || link.href.endsWith(".pdf") || link.href.endsWith(".txt")) {
+                        const fileName = link.textContent;
+                        const documentElement = document.createElement("div");
+                        documentElement.innerHTML = `
+                            <p>${fileName}</p>
+                            <a href="articulos/${fileName}" target="_blank">Ver</a>
+                        `;
+                        documentsList.appendChild(documentElement);
+                    }
+                });
             })
-            .catch((error) => console.error("Error al mostrar el documento:", error));
-    };
-
-    // Cerrar modal
-    window.closeModal = () => {
-        const modal = document.getElementById("document-modal");
-        modal.style.display = "none";
-        document.getElementById("document-content").innerHTML = "";
-    };
+            .catch((error) => console.error("Error al cargar documentos:", error));
+    }
 });
 
-
+// Modal
+function closeModal() {
+    const modal = document.getElementById("document-modal");
+    modal.style.display = "none";
+}
 
 
 
