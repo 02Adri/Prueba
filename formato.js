@@ -259,8 +259,8 @@ function viewDocument(fileId) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-    const authForm = document.getElementById("auth-form");
     const uploadForm = document.getElementById("upload-form");
+    const authForm = document.getElementById("auth-form");
     const viewDocumentsLink = document.getElementById("view-documents-link");
     const documentsList = document.getElementById("documents-list");
 
@@ -273,17 +273,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (username === "admin" && password === "adminlaw") {
                 document.getElementById("upload-section").style.display = "block";
-                authForm.style.display = "none";
+                document.getElementById("auth-form").style.display = "none";
             } else {
                 alert("Usuario o contraseña incorrectos.");
             }
         });
     }
 
-    // Subir Archivos
+    // Subir archivos
     if (uploadForm) {
         uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
+
             const fileInput = document.getElementById("file-input");
             const file = fileInput.files[0];
 
@@ -292,11 +293,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            alert("Sube el archivo manualmente a la carpeta 'articulos'.");
+            // Simulación de carga a una carpeta pública
+            const reader = new FileReader();
+            reader.onload = () => {
+                const blob = new Blob([reader.result], { type: file.type });
+                const fileURL = `articulos/${file.name}`;
+
+                // Simula guardar en la estructura pública
+                alert(`Archivo subido como ${fileURL}.`);
+
+                // Agrega el archivo a la lista de documentos
+                if (documentsList) {
+                    const documentElement = document.createElement("div");
+                    documentElement.innerHTML = `
+                        <p>${file.name}</p>
+                        <button onclick="viewDocument('${fileURL}')">Ver</button>
+                    `;
+                    documentsList.appendChild(documentElement);
+                }
+            };
+            reader.readAsArrayBuffer(file);
         });
     }
 
-    // Ver Documentos
+    // Cargar documentos en documents.html
     if (documentsList) {
         fetch("articulos/")
             .then((response) => response.text())
@@ -306,12 +326,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const links = Array.from(doc.querySelectorAll("a"));
 
                 links.forEach((link) => {
-                    const fileName = link.textContent;
-                    if (fileName.endsWith(".pdf") || fileName.endsWith(".docx") || fileName.endsWith(".txt")) {
+                    if (link.href.endsWith(".docx")) {
+                        const fileName = link.textContent;
                         const documentElement = document.createElement("div");
                         documentElement.innerHTML = `
                             <p>${fileName}</p>
-                            <iframe src="articulos/${fileName}" width="100%" height="500px"></iframe>
+                            <button onclick="viewDocument('articulos/${fileName}')">Ver</button>
                         `;
                         documentsList.appendChild(documentElement);
                     }
@@ -321,15 +341,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Cerrar Modal
+// Visualizar documentos
+function viewDocument(filePath) {
+    fetch(filePath)
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+            return mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
+                const modal = document.getElementById("document-modal");
+                modal.style.display = "block";
+                document.getElementById("document-content").innerHTML = result.value;
+            });
+        })
+        .catch((err) => console.error("Error al leer el documento:", err));
+}
+
+// Cerrar modal
 function closeModal() {
     const modal = document.getElementById("document-modal");
     modal.style.display = "none";
 }
-
-
-
-
 
 
 
