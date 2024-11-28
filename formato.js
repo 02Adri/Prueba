@@ -281,37 +281,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (uploadForm) {
-        uploadForm.addEventListener("submit", async (event) => {
+        uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
+        
             const fileInput = document.getElementById("file-input");
             const file = fileInput.files[0];
-
+        
             if (!file) {
-                //saveFile(file);
-                alert("Selecciona un archivo antes de subir.");
+                alert("Por favor selecciona un archivo.");
                 return;
-            } 
-            const formData = new FormData();
-            formData.append("file", file);
-      
-            try {
-              // Subir archivo usando fetch
-              const response = await fetch("./articulos/" + file.name, {
-                method: "POST",
-                body: formData,
-              });
-      
-              if (response.ok) {
-                alert("Archivo subido correctamente.");
-                fileInput.value = "";
-              } else {
-                alert("Error al subir el archivo.");
-              }
-            } catch (err) {
-              console.error("Error al subir archivo:", err);
-              alert("Error al subir el archivo.");
             }
-           });
+        
+            const reader = new FileReader();
+            reader.onload = () => {
+                const blob = new Blob([reader.result], { type: file.type });
+                const anchor = document.createElement("a");
+                anchor.href = URL.createObjectURL(blob);
+                anchor.download = `articulos/${file.name}`;
+                anchor.click();
+                alert("Archivo subido correctamente.");
+            };
+        
+            reader.readAsArrayBuffer(file);
+        });
+        
        
     }
     //link de documents.html
@@ -329,63 +322,66 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-const documentsList = document.getElementById("documents-list");
+document.addEventListener("DOMContentLoaded", () => {
+    const documentsList = document.getElementById("documents-list");
 
-    async function loadDocuments() {
-      try {
-        // Obtener la lista de archivos de la carpeta 'articulos'
-        const response = await fetch("./articulos/");
-        const text = await response.text();
+    // Cargar documentos de la carpeta `articulos`
+    fetch("articulos/")
+        .then((response) => response.text())
+        .then((html) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            const links = Array.from(doc.querySelectorAll("a"));
 
-        // Parsear el contenido como una lista de enlaces
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, "text/html");
-        const links = Array.from(doc.querySelectorAll("a"))
-          .filter((link) => !link.href.endsWith("/"));
+            links.forEach((link) => {
+                if (link.href.endsWith(".docx")) {
+                    const fileName = link.textContent;
+                    const documentElement = document.createElement("div");
+                    documentElement.innerHTML = `
+                        <p>${fileName}</p>
+                        <button onclick="viewDocument('articulos/${fileName}')">Ver</button>
+                    `;
+                    documentsList.appendChild(documentElement);
+                }
+            });
+        })
+        .catch((error) => console.error("Error al cargar documentos:", error));
+});
 
-        if (links.length > 0) {
-          links.forEach((link) => {
-            const fileName = link.textContent;
-            const documentElement = document.createElement("div");
-            documentElement.innerHTML = `
-              <p><strong>${fileName}</strong></p>
-              <a href="./articulos/${fileName}" target="_blank">Ver Documento</a>
-            `;
-            documentsList.appendChild(documentElement);
-          });
-        } else {
-          documentsList.innerHTML = "<p>No se encontraron documentos.</p>";
-        }
-      } catch (err) {
-        console.error("Error al cargar documentos:", err);
-        documentsList.innerHTML = "<p>Error al cargar los documentos.</p>";
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", loadDocuments);
-
-
-// Guardar archivo en la carpeta "articulos"
-function saveFile(file) {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-        const content = reader.result;
-        const fileName = file.name;
-
-        // Guardar en la carpeta "articulos" como base64
-        const savedFiles = JSON.parse(localStorage.getItem("savedFiles")) || [];
-        savedFiles.push({ name: fileName, content });
-        localStorage.setItem("savedFiles", JSON.stringify(savedFiles));
-
-        alert("Archivo guardado correctamente.");
-        if (window.location.pathname.includes("documents.html")) {
-            loadDocuments();
-        }
-    };
-
-    reader.readAsDataURL(file);
+// Ver contenido del documento
+function viewDocument(filePath) {
+    fetch(filePath)
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+            return mammoth.convertToHtml({ arrayBuffer: buffer }).then((result) => {
+                const modal = document.getElementById("document-modal");
+                modal.style.display = "block";
+                document.getElementById("document-content").innerHTML = result.value;
+            });
+        })
+        .catch((err) => console.error("Error al leer el documento:", err));
 }
+
+// Cerrar modal
+function closeModal() {
+    const modal = document.getElementById("document-modal");
+    modal.style.display = "none";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Cargar documentos desde la carpeta "articulos"
 /*function loadDocuments() {
