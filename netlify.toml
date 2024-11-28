@@ -2,7 +2,3 @@
   publish = "public" # O la carpeta donde están tus archivos
  
 
-[[redirects]]
-  from = "/articulos/*"
-  to = "/articulos/:splat"
-  status = 200
