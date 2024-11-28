@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Cargar documentos en documents.html
+    // Cargar documentos en documents.html 2.0
     if (documentsList) {
         fetch("/public/articulos")
             .then((response) => response.json())
