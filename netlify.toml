@@ -1,6 +1,6 @@
 [build]
   publish = "public" # O la carpeta donde están tus archivos
-  command = "npm run build"
+ 
 
 [[redirects]]
   from = "/articulos/*"
