@@ -258,153 +258,13 @@ function viewDocument(fileId) {
 
 
 
-
-
-
-
-
-
-
-const CLIENT_ID = "862892524220-2mf3pqmk450jq1mgr79odr3i5vm1nq5l.apps.googleusercontent.com"; 
-const API_KEY = "AIzaSyDT2rKbyxf1EKCLGn6abbYOlqrxBULa6tw";
-const SCOPES ="https://www.googleapis.com/auth/drive.file";
-const REDIRECT_URI = "https://pruebalealdiaz.netlify.app";
-
-
- let fileDataBaseId="https://drive.google.com/file/d/1xGEoftWUTx7C_ynnMYtqZPMSNhCt7agb/view?usp=sharing"
-
-
-let tokenClient;
-
-
-// Inicializar Google API
-function initGoogleAPI() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: (tokenResponse) => {
-            console.log("Autenticación exitosa.");
-            if (window.location.pathname.includes("documents.html")) {
-                loadDocuments();
-            }
-        },
-    });
-
-    tokenClient.requestAccessToken();
-}
-
-// Subir archivo a Google Drive
-function uploadFile(file) {
-    const metadata = {
-        name: file.name,
-        mimeType: file.type,
-    };
-
-    const form = new FormData();
-    form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-    form.append("file", file);
-
-    fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${tokenClient.token}` },
-        body: form,
-    })
-        .then((res) => res.json())
-        .then((fileData) => {
-            makeFilePublic(fileData.id, file.name);
-        })
-        .catch((err) => console.error("Error al subir archivo:", err));
-}
-
-// Hacer público el archivo
-function makeFilePublic(fileId, fileName) {
-    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${tokenClient.token}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            role: "reader",
-            type: "anyone",
-        }),
-    })
-        .then(() => {
-            console.log("Archivo hecho público.");
-            updateFileDatabase(fileId, fileName);
-        })
-        .catch((err) => console.error("Error al hacer público el archivo:", err));
-}
-
-// Actualizar archivo JSON en Google Drive
-function updateFileDatabase(fileId, fileName) {
-    getFileDatabase((fileDatabase) => {
-        fileDatabase.push({ id: fileId, name: fileName });
-
-        const metadata = {
-            name: "fileDatabase.json",
-            mimeType: "application/json",
-        };
-
-        const form = new FormData();
-        form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-        form.append("file", new Blob([JSON.stringify(fileDatabase)], { type: "application/json" }));
-
-        fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileDatabaseId}?uploadType=multipart`, {
-            method: "PATCH",
-            headers: { Authorization: `Bearer ${tokenClient.token}` },
-            body: form,
-        })
-            .then(() => {
-                alert("Archivo subido y actualizado correctamente.");
-                loadDocuments();
-            })
-            .catch((err) => console.error("Error al actualizar el archivo JSON:", err));
-    });
-}
-
-// Obtener base de datos de archivos desde Google Drive
-function getFileDatabase(callback) {
-    fetch(`https://www.googleapis.com/drive/v3/files/${fileDatabaseId}?alt=media`, {
-        headers: { Authorization: `Bearer ${tokenClient.token}` },
-    })
-        .then((res) => res.json())
-        .then((fileDatabase) => {
-            callback(fileDatabase);
-        })
-        .catch((err) => {
-            console.error("Error al obtener base de datos de archivos:", err);
-            callback([]);
-        });
-}
-
-// Cargar documentos desde archivo JSON
-function loadDocuments() {
-    getFileDatabase((fileDatabase) => {
-        const documentsList = document.getElementById("documents-list");
-        documentsList.innerHTML = "";
-
-        if (fileDatabase.length > 0) {
-            fileDatabase.forEach((file) => {
-                const documentElement = document.createElement("div");
-                documentElement.innerHTML = `
-                    <p><strong>Documento:</strong> ${file.name}</p>
-                    <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Ver</a>
-                `;
-                documentsList.appendChild(documentElement);
-            });
-        } else {
-            documentsList.innerHTML = "<p>No se encontraron documentos.</p>";
-        }
-    });
-}
-
+// Subir archivo
 document.addEventListener("DOMContentLoaded", () => {
     const uploadForm = document.getElementById("upload-form");
-    const authForm = document.getElementById("auth-form");
-    const viewDocumentsLink=document.getElementById("view-documents-link");
-    
-    if (authForm) {
+     const authForm = document.getElementById("auth-form");
+      const viewDocumentsLink=document.getElementById("view-documents-link");
+    const documentsList = document.getElementById("documents-list");
+     if (authForm) {
         authForm.addEventListener("submit", (event) => {
             event.preventDefault();
             const username = document.getElementById("username").value;
@@ -427,22 +287,79 @@ document.addEventListener("DOMContentLoaded", () => {
             const file = fileInput.files[0];
 
             if (file) {
-                uploadFile(file);
+                saveFile(file);
             } else {
-                alert("Por favor, selecciona un archivo.");
+                alert("Selecciona un archivo para subir.");
             }
         });
     }
-
-    if (window.location.pathname.includes("documents.html")) {
-        loadDocuments();
-    }
-
-    if(viewDocumentsLink){
+    //link de documents.html
+      if(viewDocumentsLink){
         viewDocumentsLink.addEventListener("click",(event)=>{
             event.preventDefault();
             window.location.href="/documents.html";
             loadDocuments()
         })
       }
+
+    if (documentsList) {
+        loadDocuments();
+    }
 });
+
+// Guardar archivo en la carpeta "articulos"
+function saveFile(file) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        const content = reader.result;
+        const fileName = file.name;
+
+        // Guardar en la carpeta "articulos" como base64
+        const savedFiles = JSON.parse(localStorage.getItem("savedFiles")) || [];
+        savedFiles.push({ name: fileName, content });
+        localStorage.setItem("savedFiles", JSON.stringify(savedFiles));
+
+        alert("Archivo guardado correctamente.");
+        if (window.location.pathname.includes("documents.html")) {
+            loadDocuments();
+        }
+    };
+
+    reader.readAsDataURL(file);
+}
+
+// Cargar documentos desde la carpeta "articulos"
+function loadDocuments() {
+    const savedFiles = JSON.parse(localStorage.getItem("savedFiles")) || [];
+    const documentsList = document.getElementById("documents-list");
+
+    if (!documentsList) return;
+
+    documentsList.innerHTML = "";
+
+    if (savedFiles.length > 0) {
+        savedFiles.forEach((file) => {
+            const documentElement = document.createElement("div");
+            documentElement.innerHTML = `
+                <p><strong>Documento:</strong> ${file.name}</p>
+                <button onclick="viewDocument('${file.content}')">Ver Contenido</button>
+            `;
+            documentsList.appendChild(documentElement);
+        });
+    } else {
+        documentsList.innerHTML = "<p>No se encontraron documentos.</p>";
+    }
+}
+
+// Ver contenido del archivo
+function viewDocument(content) {
+    const newWindow = window.open("", "_blank");
+    newWindow.document.write(`<iframe style="width: 100%; height: 100%;" src="${content}"></iframe>`);
+}
+
+
+
+
+
+
