@@ -255,10 +255,10 @@ function viewDocument(fileId) {
 */
 
 document.addEventListener("DOMContentLoaded", () => {
-    const uploadForm = document.getElementById("upload-form");
     const authForm = document.getElementById("auth-form");
-    const viewDocumentsLink = document.getElementById("view-documents-link");
+    const uploadForm = document.getElementById("upload-form");
     const documentsList = document.getElementById("documents-list");
+    const viewDocumentsLink = document.getElementById("view-documents-link");
 
     // Autenticación
     if (authForm) {
@@ -269,16 +269,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (username === "admin" && password === "adminlaw") {
                 document.getElementById("upload-section").style.display = "block";
-                authForm.style.display = "none";
+                document.getElementById("auth-form").style.display = "none";
             } else {
                 alert("Usuario o contraseña incorrectos.");
             }
         });
     }
 
-    // Subir documentos
+    // Subida de Archivos
     if (uploadForm) {
-        uploadForm.addEventListener("submit", async (event) => {
+        uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
             const fileInput = document.getElementById("file-input");
             const file = fileInput.files[0];
@@ -288,51 +288,46 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Crear enlace de descarga para el archivo
-            const filePath = `articulos/${file.name}`;
-            const anchor = document.createElement("a");
-            anchor.href = filePath;
-            anchor.download = file.name;
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
+            // Simula la subida del archivo a la carpeta articulos
+            const formData = new FormData();
+            formData.append("file", file);
 
-            alert("Archivo subido correctamente.");
+            fetch("/articulos/", {
+                method: "POST",
+                body: formData,
+            })
+                .then(() => {
+                    alert("Archivo subido correctamente.");
+                })
+                .catch((error) => {
+                    console.error("Error al subir archivo:", error);
+                });
         });
     }
 
-    // Cargar documentos
+    // Cargar Documentos en documents.html
     if (documentsList) {
-        fetch("articulos/")
-            .then((response) => response.text())
-            .then((html) => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, "text/html");
-                const links = Array.from(doc.querySelectorAll("a"));
-
-                links.forEach((link) => {
-                    if (link.href.endsWith(".docx") || link.href.endsWith(".pdf") || link.href.endsWith(".txt")) {
-                        const fileName = link.textContent;
-                        const documentElement = document.createElement("div");
-                        documentElement.innerHTML = `
-                            <p>${fileName}</p>
-                            <a href="articulos/${fileName}" target="_blank">Ver</a>
-                        `;
-                        documentsList.appendChild(documentElement);
-                    }
+        fetch("/articulos/")
+            .then((response) => response.json())
+            .then((files) => {
+                files.forEach((file) => {
+                    const documentElement = document.createElement("div");
+                    documentElement.innerHTML = `
+                        <p>${file.name}</p>
+                        <a href="/articulos/${file.name}" target="_blank">Ver Documento</a>
+                    `;
+                    documentsList.appendChild(documentElement);
                 });
             })
             .catch((error) => console.error("Error al cargar documentos:", error));
     }
 });
 
-// Modal
+// Modal para ver documentos
 function closeModal() {
     const modal = document.getElementById("document-modal");
     modal.style.display = "none";
 }
-
-
 
 
 
