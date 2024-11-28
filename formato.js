@@ -257,85 +257,81 @@ function viewDocument(fileId) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-    const uploadForm = document.getElementById("upload-form");
     const authForm = document.getElementById("auth-form");
-    const viewDocumentsLink = document.getElementById("view-documents-link");
+    const uploadForm = document.getElementById("upload-form");
     const documentsList = document.getElementById("documents-list");
-    const documents = JSON.parse(localStorage.getItem("documents")) || [];
 
-    // Autenticación simple
-    if (authForm) {
-        authForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
+    const uploadedDocuments = []; // Array para almacenar archivos subidos en memoria
 
-            if (username === "admin" && password === "adminlaw") {
-                document.getElementById("upload-section").style.display = "block";
-                authForm.style.display = "none";
-            } else {
-                alert("Usuario o contraseña incorrectos.");
-            }
-        });
-    }
+    // Manejo de autenticación
+    authForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
 
-    // Subir Documento
-    if (uploadForm) {
-        uploadForm.addEventListener("submit", (event) => {
-            event.preventDefault();
+        if (username === "admin" && password === "adminlaw") {
+            document.getElementById("upload-section").style.display = "block";
+            document.getElementById("auth-section").style.display = "none";
+        } else {
+            alert("Usuario o contraseña incorrectos.");
+        }
+    });
 
-            const fileInput = document.getElementById("file-input");
-            const file = fileInput.files[0];
+    // Manejo de subida de documentos
+    uploadForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const fileInput = document.getElementById("file-input");
+        const file = fileInput.files[0];
 
-            if (!file) {
-                alert("Por favor selecciona un archivo.");
-                return;
-            }
+        if (!file) {
+            alert("Por favor selecciona un archivo.");
+            return;
+        }
 
-            const reader = new FileReader();
-            reader.onload = () => {
-                const documentUrl = URL.createObjectURL(new Blob([reader.result], { type: file.type }));
-                documents.push({ name: file.name, url: documentUrl });
-                localStorage.setItem("documents", JSON.stringify(documents));
-                alert("Archivo subido correctamente.");
-            };
-            reader.readAsArrayBuffer(file);
-        });
-    }
+        const reader = new FileReader();
+        reader.onload = () => {
+            const fileData = reader.result;
+            uploadedDocuments.push({ name: file.name, data: fileData });
+            displayDocuments();
+            alert("Documento subido correctamente.");
+        };
+        reader.readAsArrayBuffer(file);
+    });
 
-    // Mostrar documentos
-    if (documentsList) {
-        documents.forEach((doc) => {
+    // Mostrar lista de documentos
+    function displayDocuments() {
+        documentsList.innerHTML = ""; // Limpiar lista
+        uploadedDocuments.forEach((doc, index) => {
             const documentElement = document.createElement("div");
             documentElement.innerHTML = `
-                <p>${doc.name}</p>
-                <button onclick="viewDocument('${doc.url}')">Ver</button>
+                <p><strong>${doc.name}</strong></p>
+                <button onclick="viewDocument(${index})">Ver</button>
             `;
             documentsList.appendChild(documentElement);
         });
     }
+
+    // Visualizar documento usando Mammoth.js
+    window.viewDocument = (index) => {
+        const doc = uploadedDocuments[index];
+        const arrayBuffer = doc.data;
+
+        mammoth.convertToHtml({ arrayBuffer })
+            .then((result) => {
+                const modal = document.getElementById("document-modal");
+                modal.style.display = "block";
+                document.getElementById("document-content").innerHTML = result.value;
+            })
+            .catch((error) => console.error("Error al mostrar el documento:", error));
+    };
+
+    // Cerrar modal
+    window.closeModal = () => {
+        const modal = document.getElementById("document-modal");
+        modal.style.display = "none";
+        document.getElementById("document-content").innerHTML = "";
+    };
 });
-
-// Ver contenido del documento
-function viewDocument(filePath) {
-    const modal = document.getElementById("document-modal");
-    if (!modal) return;
-
-    fetch(filePath)
-        .then((res) => res.text())
-        .then((content) => {
-            document.getElementById("document-content").innerText = content;
-            modal.style.display = "block";
-        })
-        .catch((err) => console.error("Error al leer el documento:", err));
-}
-
-// Cerrar modal
-function closeModal() {
-    const modal = document.getElementById("document-modal");
-    if (modal) modal.style.display = "none";
-}
-
 
 
 
