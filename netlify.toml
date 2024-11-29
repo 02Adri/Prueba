@@ -2,6 +2,6 @@
   publish = "."
 
 [[redirects]]
-  from = "/articulos/*"
-  to = "/articulos/:splat"
+  from = "/*"
+  to = "/index.html"
   status = 200

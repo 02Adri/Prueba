@@ -27,30 +27,26 @@ document.addEventListener("DOMContentLoaded", () => {
             event.preventDefault();
 
             const fileInput = document.getElementById("file-input");
-            const file = fileInput.files[0];
+    const file = fileInput.files[0];
 
-            if (!file) {
-                alert("Por favor selecciona un archivo.");
-                return;
-            }
+    if (!file || !file.name.endsWith(".docx")) {
+        alert("Por favor, selecciona un archivo .docx.");
+        return;
+    }
 
-            try {
-                // Subir archivo a Supabase
-                const { data, error } = await supabase.storage
-                    .from('articulos')
-                    .upload(`public/${file.name}`, file);
+    try {
+        const { data, error } = await supabase.storage
+            .from("articulos")
+            .upload(`public/${file.name}`, file, { upsert: true });
 
-                if (error) {
-                    console.error("Error al subir archivo:", error);
-                    alert("Error al subir archivo. Por favor intenta de nuevo.");
-                    return;
-                }
+        if (error) throw error;
 
-                alert("Archivo subido correctamente.");
-            } catch (err) {
-                console.error("Error inesperado:", err);
-                alert("Error inesperado al subir archivo.");
-            }
+        alert("Archivo subido correctamente.");
+        fileInput.value = "";
+    } catch (err) {
+        console.error("Error al subir el archivo:", err.message);
+        alert(`Error al subir archivo: ${err.message}`);
+    }
         });
     }
 
