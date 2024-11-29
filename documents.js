@@ -1,26 +1,28 @@
-import { supabase } from "./supabase.js";
+import { supabase } from './supabase.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
     const documentsList = document.getElementById("documents-list");
 
     try {
-        // Obtener metadatos de documentos desde Supabase
-        const { data, error } = await supabase
-            .from("documentos")
-            .select("*");
+        // Obtener lista de archivos
+        const { data, error } = await supabase.storage
+            .from('articulos')
+            .list('public');
 
-        if (error) throw error;
+        if (error) {
+            console.error("Error al cargar documentos:", error);
+            return;
+        }
 
-        // Crear la lista de documentos
-        data.forEach((doc) => {
-            const documentElement = document.createElement("div");
-            documentElement.innerHTML = `
-                <p>${doc.name}</p>
-                <a href="https://<YOUR-SUPABASE-BUCKET-URL>/${doc.url}" target="_blank">Ver Documento</a>
+        data.forEach((file) => {
+            const fileElement = document.createElement("div");
+            fileElement.innerHTML = `
+                <p>${file.name}</p>
+                <a href="https://<tu_supabase_url>/storage/v1/object/public/articulos/public/${file.name}" target="_blank">Ver Documento</a>
             `;
-            documentsList.appendChild(documentElement);
+            documentsList.appendChild(fileElement);
         });
     } catch (err) {
-        console.error("Error al cargar documentos:", err);
+        console.error("Error inesperado al cargar documentos:", err);
     }
 });

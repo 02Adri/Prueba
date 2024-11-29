@@ -23,36 +23,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Subir Archivos
     if (uploadForm) {
-        uploadForm.addEventListener("submit", async(event) => {
+        uploadForm.addEventListener("submit", async (event) => {
             event.preventDefault();
+
             const fileInput = document.getElementById("file-input");
-    const file = fileInput.files[0];
+            const file = fileInput.files[0];
 
-    if (!file) {
-        alert("Por favor selecciona un archivo.");
-        return;
-    }
+            if (!file) {
+                alert("Por favor selecciona un archivo.");
+                return;
+            }
 
-    try {
-        // Subir archivo a la carpeta `articulos/`
-        const { data, error } = await supabase.storage
-            .from("articulos")
-            .upload(`public/${file.name}`, file);
+            try {
+                // Subir archivo a Supabase
+                const { data, error } = await supabase.storage
+                    .from('articulos')
+                    .upload(`public/${file.name}`, file);
 
-        if (error) throw error;
+                if (error) {
+                    console.error("Error al subir archivo:", error);
+                    alert("Error al subir archivo. Por favor intenta de nuevo.");
+                    return;
+                }
 
-        // Guardar metadatos del archivo en la base de datos
-        const { error: insertError } = await supabase
-            .from("documentos")
-            .insert([{ name: file.name, url: data.path }]);
-
-        if (insertError) throw insertError;
-
-        alert("Archivo subido correctamente.");
-    } catch (err) {
-        console.error("Error al subir archivo:", err);
-        alert("Hubo un error al subir el archivo.");
-    }
+                alert("Archivo subido correctamente.");
+            } catch (err) {
+                console.error("Error inesperado:", err);
+                alert("Error inesperado al subir archivo.");
+            }
         });
     }
 
