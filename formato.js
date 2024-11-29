@@ -254,10 +254,11 @@ function viewDocument(fileId) {
 
 */
 
+
 document.addEventListener("DOMContentLoaded", () => {
-    const uploadForm = document.getElementById("upload-form");
     const authForm = document.getElementById("auth-form");
-    const viewDocumentsLink = document.getElementById("view-documents-link");
+    const uploadSection = document.getElementById("upload-section");
+    const uploadForm = document.getElementById("upload-form");
     const documentsList = document.getElementById("documents-list");
 
     // Autenticación
@@ -268,49 +269,46 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("password").value;
 
             if (username === "admin" && password === "adminlaw") {
-                document.getElementById("upload-section").style.display = "block";
-                document.getElementById("auth-form").style.display = "none";
+                authForm.style.display = "none";
+                uploadSection.style.display = "block";
             } else {
                 alert("Usuario o contraseña incorrectos.");
             }
         });
     }
 
-    // Subir documento
+    // Subir Archivos
     if (uploadForm) {
-        uploadForm.addEventListener("submit", async (event) => {
+        uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
             const fileInput = document.getElementById("file-input");
             const file = fileInput.files[0];
 
-            if (!file) {
-                alert("Por favor selecciona un archivo.");
-                return;
-            }
+            if (file) {
+                const formData = new FormData();
+                formData.append("file", file);
 
-            const formData = new FormData();
-            formData.append("file", file);
-
-            try {
-                const response = await fetch("/articulos/", {
-                    method: "POST",
+                fetch("/articulos/" + file.name, {
+                    method: "PUT",
                     body: formData,
-                });
-
-                if (response.ok) {
-                    alert("Archivo subido correctamente.");
-                } else {
-                    alert("Error al subir el archivo.");
-                }
-            } catch (error) {
-                console.error("Error:", error);
+                })
+                .then((response) => {
+                    if (response.ok) {
+                        alert("Archivo subido correctamente.");
+                    } else {
+                        alert("Error al subir el archivo.");
+                    }
+                })
+                .catch((err) => console.error("Error:", err));
+            } else {
+                alert("Selecciona un archivo.");
             }
         });
     }
 
-    // Cargar documentos en documents.html
+    // Cargar Documentos
     if (documentsList) {
-        fetch("articulos/")
+        fetch("/articulos/")
             .then((response) => response.text())
             .then((html) => {
                 const parser = new DOMParser();
@@ -318,18 +316,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 const links = Array.from(doc.querySelectorAll("a"));
 
                 links.forEach((link) => {
-                    if (link.href.endsWith(".pdf") || link.href.endsWith(".docx")) {
-                        const fileName = link.textContent;
-                        const documentElement = document.createElement("div");
-                        documentElement.innerHTML = `
-                            <p>${fileName}</p>
-                            <a href="articulos/${fileName}" target="_blank">Ver</a>
-                        `;
-                        documentsList.appendChild(documentElement);
-                    }
+                    const fileName = link.textContent;
+                    const documentElement = document.createElement("div");
+                    documentElement.innerHTML = `
+                        <p>${fileName}</p>
+                        <a href="/articulos/${fileName}" target="_blank">Ver Documento</a>
+                    `;
+                    documentsList.appendChild(documentElement);
                 });
             })
-            .catch((error) => console.error("Error al cargar documentos:", error));
+            .catch((err) => console.error("Error al cargar documentos:", err));
     }
 });
 
