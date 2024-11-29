@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 document.addEventListener("DOMContentLoaded", async () => {
     const documentsList = document.getElementById("documents-list");
 

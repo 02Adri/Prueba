@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 document.addEventListener("DOMContentLoaded", () => {
     const authForm = document.getElementById("auth-form");
     const uploadSection = document.getElementById("upload-section");
