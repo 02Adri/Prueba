@@ -1,3 +1,4 @@
+const formidable = require('formidable');
 const fs = require('fs');
 const path = require('path');
 
@@ -9,39 +10,47 @@ exports.handler = async (event, context) => {
         };
     }
 
-    const boundary = event.headers['content-type'].split('boundary=')[1];
-    const body = event.body;
-    const fileContentMatch = body.match(new RegExp(`--${boundary}\\r\\n.*?\\r\\n\\r\\n([\\s\\S]*?)\\r\\n--`));
-    const fileNameMatch = body.match(/filename="([^"]+)"/);
+    const form = new formidable.IncomingForm();
+    form.uploadDir = path.join(__dirname, '../../articulos');
+    form.keepExtensions = true;
 
-    if (!fileContentMatch || !fileNameMatch) {
-        return {
-            statusCode: 400,
-            body: 'No file uploaded or invalid request',
-        };
-    }
+    return new Promise((resolve, reject) => {
+        form.parse(event, (err, fields, files) => {
+            if (err) {
+                console.error('Error al procesar archivo:', err);
+                resolve({
+                    statusCode: 400,
+                    body: 'Error al procesar archivo',
+                });
+                return;
+            }
 
-    const fileName = fileNameMatch[1];
-    const fileContent = Buffer.from(fileContentMatch[1], 'binary');
+            const file = files.file;
+            if (!file || !file.originalFilename.endsWith('.docx')) {
+                resolve({
+                    statusCode: 400,
+                    body: 'Solo se permiten archivos .docx',
+                });
+                return;
+            }
 
-    if (!fileName.endsWith('.docx')) {
-        return {
-            statusCode: 400,
-            body: 'Only .docx files are allowed',
-        };
-    }
+            const newPath = path.join(form.uploadDir, file.originalFilename);
 
-    const filePath = path.join(__dirname, '../../articulos', fileName);
-    try {
-        fs.writeFileSync(filePath, fileContent);
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: 'File uploaded successfully', fileName }),
-        };
-    } catch (error) {
-        return {
-            statusCode: 500,
-            body: 'Error saving file',
-        };
-    }
+            fs.rename(file.filepath, newPath, (renameErr) => {
+                if (renameErr) {
+                    console.error('Error al guardar archivo:', renameErr);
+                    resolve({
+                        statusCode: 500,
+                        body: 'Error al guardar archivo',
+                    });
+                    return;
+                }
+
+                resolve({
+                    statusCode: 200,
+                    body: JSON.stringify({ message: 'Archivo subido exitosamente' }),
+                });
+            });
+        });
+    });
 };
