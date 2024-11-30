@@ -27,26 +27,26 @@ document.addEventListener("DOMContentLoaded", () => {
             event.preventDefault();
 
             const fileInput = document.getElementById("file-input");
-    const file = fileInput.files[0];
-
-    if (!file || !file.name.endsWith(".docx")) {
-        alert("Por favor, selecciona un archivo .docx.");
-        return;
-    }
-
-    try {
-        const { data, error } = await supabase.storage
-            .from("articulos")
-            .upload(`public/${file.name}`, file, { upsert: true });
-
-        if (error) throw error;
-
-        alert("Archivo subido correctamente.");
-        fileInput.value = "";
-    } catch (err) {
-        console.error("Error al subir el archivo:", err.message);
-        alert(`Error al subir archivo: ${err.message}`);
-    }
+            const file = fileInput.files[0];
+        
+            if (!file || file.type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                alert("Por favor, selecciona un archivo .docx");
+                return;
+            }
+        
+            try {
+                const { data, error } = await supabase.storage
+                    .from("articulos")
+                    .upload(`public/${file.name}`, file, { upsert: true });
+        
+                if (error) throw error;
+        
+                alert("Archivo subido exitosamente.");
+            } catch (err) {
+                console.error("Error al subir archivo:", err);
+                alert("Error al subir archivo: " + err.message);
+            }
+    
         });
     }
 

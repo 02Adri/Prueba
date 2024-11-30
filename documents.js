@@ -1,49 +1,48 @@
 import { supabase } from "./supabase.js";
 
 async function loadDocuments() {
-    const { data, error } = await supabase.storage.from("articulos").list("public");
+    const listElement = document.getElementById("documents-list");
 
-    if (error) {
-        console.error("Error al cargar documentos:", error.message);
-        return;
+    try {
+        const { data, error } = await supabase.storage.from("articulos").list("public");
+
+        if (error) throw error;
+
+        listElement.innerHTML = "";
+        data.forEach((file) => {
+            if (file.name.endsWith(".docx")) {
+                const documentElement = document.createElement("div");
+                documentElement.innerHTML = `
+                    <p>${file.name}</p>
+                    <button onclick="viewDocument('${file.name}')">Ver</button>
+                `;
+                listElement.appendChild(documentElement);
+            }
+        });
+    } catch (err) {
+        console.error("Error al cargar documentos:", err);
     }
-
-    const documentsList = document.getElementById("documents-list");
-    documentsList.innerHTML = "";
-
-    data.forEach((file) => {
-        if (file.name.endsWith(".docx")) {
-            const documentElement = document.createElement("div");
-            documentElement.innerHTML = `
-                <p>${file.name}</p>
-                <button onclick="viewDocument('${file.name}')">Ver</button>
-            `;
-            documentsList.appendChild(documentElement);
-        }
-    });
 }
 
 async function viewDocument(fileName) {
-    const { data, error } = await supabase.storage.from("articulos").download(`public/${fileName}`);
+    try {
+        const { data, error } = await supabase.storage.from("articulos").download(`public/${fileName}`);
 
-    if (error) {
-        console.error("Error al descargar documento:", error.message);
-        return;
+        if (error) throw error;
+
+        const arrayBuffer = await data.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const modal = document.getElementById("document-modal");
+        modal.style.display = "block";
+        document.getElementById("document-content").innerHTML = result.value;
+    } catch (err) {
+        console.error("Error al leer el documento:", err);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-        mammoth.convertToHtml({ arrayBuffer: reader.result }).then((result) => {
-            const modal = document.getElementById("document-modal");
-            modal.style.display = "block";
-            document.getElementById("document-content").innerHTML = result.value;
-        });
-    };
-    reader.readAsArrayBuffer(data);
 }
 
 function closeModal() {
-    document.getElementById("document-modal").style.display = "none";
+    const modal = document.getElementById("document-modal");
+    modal.style.display = "none";
 }
 
 document.addEventListener("DOMContentLoaded", loadDocuments);
