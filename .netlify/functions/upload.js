@@ -1,6 +1,7 @@
 const formidable = require("formidable");
 const fs = require("fs");
 const path = require("path");
+const { Readable } = require("stream");
 
 exports.handler = async (event) => {
     if (event.httpMethod !== "POST") {
@@ -10,7 +11,14 @@ exports.handler = async (event) => {
         };
     }
 
-    const uploadDir = path.join("/tmp", "uploads", "articulos"); // Ruta temporal
+    // Convertir el cuerpo del evento en un flujo legible
+    const buffer = Buffer.from(event.body, event.isBase64Encoded ? "base64" : "utf8");
+    const readableStream = new Readable();
+    readableStream.push(buffer);
+    readableStream.push(null); // Finaliza el flujo
+    readableStream.headers = event.headers; // Añadir cabeceras
+
+    const uploadDir = path.join("/tmp", "uploads", "articulos"); // Usar directorio temporal
 
     if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -22,7 +30,7 @@ exports.handler = async (event) => {
     form.maxFileSize = 10 * 1024 * 1024; // 10 MB
 
     return new Promise((resolve) => {
-        form.parse(event, (err, fields, files) => {
+        form.parse(readableStream, (err, fields, files) => {
             if (err) {
                 console.error("Error al procesar el archivo:", err);
                 resolve({
@@ -32,6 +40,7 @@ exports.handler = async (event) => {
                 return;
             }
 
+            // Verificar si el archivo está presente
             if (!files.file || !files.file.filepath) {
                 resolve({
                     statusCode: 400,
@@ -42,7 +51,11 @@ exports.handler = async (event) => {
 
             resolve({
                 statusCode: 200,
-                body: "Archivo procesado exitosamente",
+                body: JSON.stringify({
+                    message: "Archivo procesado exitosamente",
+                    fields,
+                    files,
+                }),
             });
         });
     });
