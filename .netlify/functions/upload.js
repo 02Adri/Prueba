@@ -4,7 +4,6 @@ const path = require("path");
 const { Readable } = require("stream");
 
 exports.handler = async (event) => {
-    // Permitir solo solicitudes POST
     if (event.httpMethod !== "POST") {
         return {
             statusCode: 405,
@@ -12,16 +11,21 @@ exports.handler = async (event) => {
         };
     }
 
-    // Convertir el cuerpo de la solicitud a un flujo legible
     const buffer = Buffer.from(event.body, event.isBase64Encoded ? "base64" : "utf8");
     const readableStream = new Readable();
     readableStream.push(buffer);
     readableStream.push(null);
     readableStream.headers = event.headers;
 
+    const uploadDir = path.join("/tmp", "articulos");
+
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
     const form = new formidable.IncomingForm();
-    form.uploadDir = path.join("/tmp", "articulos"); // Carpeta de destino para entornos temporales
-    form.keepExtensions = true; // Mantener extensiones originales
+    form.uploadDir = uploadDir;
+    form.keepExtensions = true;
 
     return new Promise((resolve) => {
         form.parse(readableStream, (err, fields, files) => {
@@ -34,7 +38,6 @@ exports.handler = async (event) => {
                 return;
             }
 
-            // Validar si existe archivo en la solicitud
             if (!files.file) {
                 console.error("No se encontró ningún archivo en la solicitud.");
                 resolve({
@@ -44,11 +47,9 @@ exports.handler = async (event) => {
                 return;
             }
 
-            const file = files.file; // Archivo recibido
-            if (
-                !file.originalFilename || 
-                !file.originalFilename.trim().toLowerCase().endsWith(".docx")
-            ) {
+            const file = files.file;
+
+            if (!file.originalFilename || !file.originalFilename.trim().toLowerCase().endsWith(".docx")) {
                 console.error("Archivo inválido:", file);
                 resolve({
                     statusCode: 400,
@@ -57,22 +58,30 @@ exports.handler = async (event) => {
                 return;
             }
 
-            const newPath = path.join(form.uploadDir, file.originalFilename);
+            if (file.size > 5 * 1024 * 1024) {
+                console.error("Archivo demasiado grande:", file.size);
+                resolve({
+                    statusCode: 400,
+                    body: "El archivo supera el tamaño máximo permitido de 5 MB",
+                });
+                return;
+            }
 
-            // Mover el archivo a la carpeta final
+            const newPath = path.join(uploadDir, file.originalFilename);
+
             fs.rename(file.filepath, newPath, (renameErr) => {
                 if (renameErr) {
-                    console.error("Error al guardar el archivo:", renameErr.message);
+                    console.error("Error al mover el archivo:", renameErr.message);
                     resolve({
                         statusCode: 500,
-                        body: `Error al guardar el archivo: ${renameErr.message}`,
+                        body: `Error al mover el archivo: ${renameErr.message}`,
                     });
                     return;
                 }
 
                 resolve({
                     statusCode: 200,
-                    body: JSON.stringify({ message: "Archivo subido exitosamente" }),
+                    body: JSON.stringify({ message: "Archivo subido exitosamente", path: newPath }),
                 });
             });
         });
