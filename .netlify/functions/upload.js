@@ -20,7 +20,7 @@ exports.handler = async (event) => {
     readableStream.headers = event.headers;
 
     const form = new formidable.IncomingForm();
-    form.uploadDir = path.join(__dirname, "../../articulos"); // Carpeta de destino
+    form.uploadDir = path.join("/tmp", "articulos"); // Carpeta de destino para entornos temporales
     form.keepExtensions = true; // Mantener extensiones originales
 
     return new Promise((resolve) => {
@@ -45,7 +45,10 @@ exports.handler = async (event) => {
             }
 
             const file = files.file; // Archivo recibido
-            if (!file.originalFilename || !file.originalFilename.endsWith(".docx")) {
+            if (
+                !file.originalFilename || 
+                !file.originalFilename.trim().toLowerCase().endsWith(".docx")
+            ) {
                 console.error("Archivo inválido:", file);
                 resolve({
                     statusCode: 400,
@@ -59,10 +62,10 @@ exports.handler = async (event) => {
             // Mover el archivo a la carpeta final
             fs.rename(file.filepath, newPath, (renameErr) => {
                 if (renameErr) {
-                    console.error("Error al guardar el archivo:", renameErr);
+                    console.error("Error al guardar el archivo:", renameErr.message);
                     resolve({
                         statusCode: 500,
-                        body: "Error al guardar el archivo",
+                        body: `Error al guardar el archivo: ${renameErr.message}`,
                     });
                     return;
                 }
