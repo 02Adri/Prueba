@@ -49,18 +49,24 @@ exports.handler = async (event) => {
 
             const file = files.file;
             const validExtensions = [".docx"];
+            const validMimeTypes = [
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ];
             const originalFilename = file.originalFilename || "";
 
             // Validar por extensión
-            const isValidExtension = validExtensions.some((ext) =>
+            const hasValidExtension = validExtensions.some((ext) =>
                 originalFilename.trim().toLowerCase().endsWith(ext)
             );
 
-            if (!isValidExtension) {
+            // Validar por MIME type
+            const hasValidMimeType = validMimeTypes.includes(file.mimetype);
+
+            if (!hasValidExtension || !hasValidMimeType) {
                 console.error("Archivo inválido:", file);
                 resolve({
                     statusCode: 400,
-                    body: "Solo se permiten archivos con extensión .docx",
+                    body: "Solo se permiten archivos .docx con el tipo MIME adecuado.",
                 });
                 return;
             }
