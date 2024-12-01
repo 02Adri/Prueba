@@ -54,16 +54,18 @@ exports.handler = async (event) => {
             ];
             const originalFilename = file.originalFilename || "";
 
-            // Validar por extensión
-            const hasValidExtension = validExtensions.some((ext) =>
-                originalFilename.trim().toLowerCase().endsWith(ext)
-            );
+            // Validar extensión usando path.extname
+            const fileExtension = path.extname(originalFilename).toLowerCase();
+            const hasValidExtension = validExtensions.includes(fileExtension);
 
-            // Validar por MIME type
+            // Validar MIME type
             const hasValidMimeType = validMimeTypes.includes(file.mimetype);
 
             if (!hasValidExtension || !hasValidMimeType) {
-                console.error("Archivo inválido:", file);
+                console.error("Archivo inválido:", {
+                    extension: fileExtension,
+                    mimetype: file.mimetype,
+                });
                 resolve({
                     statusCode: 400,
                     body: "Solo se permiten archivos .docx con el tipo MIME adecuado.",
@@ -71,7 +73,7 @@ exports.handler = async (event) => {
                 return;
             }
 
-            const newPath = path.join(uploadDir, file.originalFilename);
+            const newPath = path.join(uploadDir, file.newFilename);
 
             fs.rename(file.filepath, newPath, (renameErr) => {
                 if (renameErr) {
@@ -85,7 +87,10 @@ exports.handler = async (event) => {
 
                 resolve({
                     statusCode: 200,
-                    body: JSON.stringify({ message: "Archivo subido exitosamente", path: newPath }),
+                    body: JSON.stringify({
+                        message: "Archivo subido exitosamente",
+                        path: newPath,
+                    }),
                 });
             });
         });
