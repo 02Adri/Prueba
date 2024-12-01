@@ -48,7 +48,7 @@ exports.handler = async (event) => {
                 });
                 return;
             }
-
+        
             // Validar si hay archivo en la solicitud
             if (!files.file) {
                 console.error("No se encontró ningún archivo en la solicitud.");
@@ -58,26 +58,42 @@ exports.handler = async (event) => {
                 });
                 return;
             }
-
+        
             const file = files.file;
-
-            // Validar la estructura básica del archivo
-            if (!file.originalFilename || !file.mimetype) {
-                console.error("Archivo inválido: Faltan datos esenciales.");
+        
+            // Validar la existencia y estructura básica del archivo
+            if (!file || typeof file !== "object") {
+                console.error("No se recibió un archivo válido.");
                 resolve({
                     statusCode: 400,
-                    body: "Archivo inválido: El archivo debe incluir un nombre y un tipo MIME.",
+                    body: "Error: No se recibió un archivo válido.",
                 });
                 return;
             }
-
+        
+            const originalFilename = file.originalFilename || "(Nombre no disponible)";
+            const mimetype = file.mimetype || "(MIME no disponible)";
+        
+            if (originalFilename === "(Nombre no disponible)" || mimetype === "(MIME no disponible)") {
+                console.error("Archivo inválido: Faltan datos esenciales.", {
+                    originalFilename,
+                    mimetype,
+                });
+                resolve({
+                    statusCode: 400,
+                    body: `Archivo inválido: El archivo debe incluir un nombre y un tipo MIME. Nombre recibido: ${originalFilename}, MIME recibido: ${mimetype}`,
+                });
+                return;
+            }
+        
+            // Continuar con la validación y procesamiento del archivo...
             const validExtensions = [".docx"];
             const validMimeTypes = [
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             ];
-
+        
             // Validar la extensión del archivo
-            const fileExtension = path.extname(file.originalFilename).toLowerCase();
+            const fileExtension = path.extname(originalFilename).toLowerCase();
             if (!validExtensions.includes(fileExtension)) {
                 console.error("Extensión inválida:", fileExtension);
                 resolve({
@@ -86,20 +102,20 @@ exports.handler = async (event) => {
                 });
                 return;
             }
-
+        
             // Validar el tipo MIME del archivo
-            if (!validMimeTypes.includes(file.mimetype)) {
-                console.error("Tipo MIME inválido:", file.mimetype);
+            if (!validMimeTypes.includes(mimetype)) {
+                console.error("Tipo MIME inválido:", mimetype);
                 resolve({
                     statusCode: 400,
                     body: "Tipo MIME inválido. Solo se permiten archivos con tipo MIME adecuado.",
                 });
                 return;
             }
-
+        
             // Renombrar y mover el archivo
             const newPath = path.join(uploadDir, file.newFilename);
-
+        
             fs.rename(file.filepath, newPath, (renameErr) => {
                 if (renameErr) {
                     console.error("Error al mover el archivo:", renameErr.message);
@@ -109,7 +125,7 @@ exports.handler = async (event) => {
                     });
                     return;
                 }
-
+        
                 resolve({
                     statusCode: 200,
                     body: JSON.stringify({
@@ -119,5 +135,6 @@ exports.handler = async (event) => {
                 });
             });
         });
+        
     });
 };
