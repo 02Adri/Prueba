@@ -55,7 +55,7 @@ exports.handler = async (event, context) => {
 
                 resolve({
                     statusCode: 200,
-                    body: JSON.stringify({ message: "Archivo subido exitosamente" }),
+                    body: JSON.stringify({ message: "Archivo subido exitosamente al servidor" }),
                 });
             });
         });
