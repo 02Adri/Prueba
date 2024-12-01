@@ -48,21 +48,19 @@ exports.handler = async (event) => {
             }
 
             const file = files.file;
+            const validExtensions = [".docx"];
+            const originalFilename = file.originalFilename || "";
 
-            if (!file.originalFilename || !file.originalFilename.trim().toLowerCase().endsWith(".docx")) {
+            // Validar por extensión
+            const isValidExtension = validExtensions.some((ext) =>
+                originalFilename.trim().toLowerCase().endsWith(ext)
+            );
+
+            if (!isValidExtension) {
                 console.error("Archivo inválido:", file);
                 resolve({
                     statusCode: 400,
                     body: "Solo se permiten archivos con extensión .docx",
-                });
-                return;
-            }
-
-            if (file.size > 5 * 1024 * 1024) {
-                console.error("Archivo demasiado grande:", file.size);
-                resolve({
-                    statusCode: 400,
-                    body: "El archivo supera el tamaño máximo permitido de 5 MB",
                 });
                 return;
             }
