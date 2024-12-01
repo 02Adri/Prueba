@@ -49,7 +49,7 @@ exports.handler = async (event) => {
 
             const file = files.file;
 
-            // Verificar que el archivo tenga nombre y tipo MIME
+            // Verificar que los datos del archivo estén presentes
             if (!file.originalFilename || !file.mimetype) {
                 console.error("Archivo inválido: datos faltantes", {
                     originalFilename: file.originalFilename || "No disponible",
