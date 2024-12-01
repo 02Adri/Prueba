@@ -31,7 +31,7 @@ exports.handler = async (event) => {
     form.maxFileSize = 10 * 1024 * 1024; // 10 MB
 
     return new Promise((resolve) => {
-        form.on('error', (err) => {
+        form.on("error", (err) => {
             console.error("Error al procesar el archivo:", err);
             resolve({
                 statusCode: 400,
@@ -61,7 +61,7 @@ exports.handler = async (event) => {
 
             const file = files.file;
 
-            // Validar presencia de atributos del archivo
+            // Validar la estructura básica del archivo
             if (!file.originalFilename || !file.mimetype) {
                 console.error("Archivo inválido: Faltan datos esenciales.");
                 resolve({
