@@ -27,7 +27,7 @@ exports.handler = async (event) => {
     form.uploadDir = uploadDir;
     form.keepExtensions = true;
 
-    // Configurar el tamaño máximo de archivo, si es necesario
+    // Configurar el tamaño máximo de archivo
     form.maxFileSize = 10 * 1024 * 1024; // 10 MB
 
     return new Promise((resolve) => {
@@ -35,7 +35,7 @@ exports.handler = async (event) => {
             console.error("Error al procesar el archivo:", err);
             resolve({
                 statusCode: 400,
-                body: "Error al procesar el archivo",
+                body: "Error al procesar el archivo.",
             });
         });
 
@@ -44,12 +44,12 @@ exports.handler = async (event) => {
                 console.error("Error al procesar el archivo:", err);
                 resolve({
                     statusCode: 400,
-                    body: "Error al procesar el archivo",
+                    body: "Error al procesar el archivo.",
                 });
                 return;
             }
 
-            // Verificar si el archivo está presente en la solicitud
+            // Validar si hay archivo en la solicitud
             if (!files.file) {
                 console.error("No se encontró ningún archivo en la solicitud.");
                 resolve({
@@ -61,15 +61,12 @@ exports.handler = async (event) => {
 
             const file = files.file;
 
-            // Verificar que los datos del archivo estén presentes
+            // Validar presencia de atributos del archivo
             if (!file.originalFilename || !file.mimetype) {
-                console.error("Archivo inválido: datos faltantes", {
-                    originalFilename: file.originalFilename || "No disponible",
-                    mimetype: file.mimetype || "No disponible",
-                });
+                console.error("Archivo inválido: Faltan datos esenciales.");
                 resolve({
                     statusCode: 400,
-                    body: "Archivo inválido: datos faltantes (nombre o tipo MIME)",
+                    body: "Archivo inválido: El archivo debe incluir un nombre y un tipo MIME.",
                 });
                 return;
             }
@@ -78,27 +75,29 @@ exports.handler = async (event) => {
             const validMimeTypes = [
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             ];
-            const originalFilename = file.originalFilename || "";
 
-            // Validar extensión usando path.extname
-            const fileExtension = path.extname(originalFilename).toLowerCase();
-            const hasValidExtension = validExtensions.includes(fileExtension);
-
-            // Validar MIME type
-            const hasValidMimeType = validMimeTypes.includes(file.mimetype);
-
-            if (!hasValidExtension || !hasValidMimeType) {
-                console.error("Archivo inválido:", {
-                    extension: fileExtension,
-                    mimetype: file.mimetype,
-                });
+            // Validar la extensión del archivo
+            const fileExtension = path.extname(file.originalFilename).toLowerCase();
+            if (!validExtensions.includes(fileExtension)) {
+                console.error("Extensión inválida:", fileExtension);
                 resolve({
                     statusCode: 400,
-                    body: "Solo se permiten archivos .docx con el tipo MIME adecuado.",
+                    body: "Extensión inválida. Solo se permiten archivos .docx.",
                 });
                 return;
             }
 
+            // Validar el tipo MIME del archivo
+            if (!validMimeTypes.includes(file.mimetype)) {
+                console.error("Tipo MIME inválido:", file.mimetype);
+                resolve({
+                    statusCode: 400,
+                    body: "Tipo MIME inválido. Solo se permiten archivos con tipo MIME adecuado.",
+                });
+                return;
+            }
+
+            // Renombrar y mover el archivo
             const newPath = path.join(uploadDir, file.newFilename);
 
             fs.rename(file.filepath, newPath, (renameErr) => {
@@ -114,7 +113,7 @@ exports.handler = async (event) => {
                 resolve({
                     statusCode: 200,
                     body: JSON.stringify({
-                        message: "Archivo subido exitosamente",
+                        message: "Archivo subido exitosamente.",
                         path: newPath,
                     }),
                 });
