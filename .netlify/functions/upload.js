@@ -48,6 +48,20 @@ exports.handler = async (event) => {
             }
 
             const file = files.file;
+
+            // Verificar que el archivo tenga nombre y tipo MIME
+            if (!file.originalFilename || !file.mimetype) {
+                console.error("Archivo inválido: datos faltantes", {
+                    originalFilename: file.originalFilename || "No disponible",
+                    mimetype: file.mimetype || "No disponible",
+                });
+                resolve({
+                    statusCode: 400,
+                    body: "Archivo inválido: datos faltantes (nombre o tipo MIME)",
+                });
+                return;
+            }
+
             const validExtensions = [".docx"];
             const validMimeTypes = [
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
