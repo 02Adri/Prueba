@@ -27,7 +27,18 @@ exports.handler = async (event) => {
     form.uploadDir = uploadDir;
     form.keepExtensions = true;
 
+    // Configurar el tamaño máximo de archivo, si es necesario
+    form.maxFileSize = 10 * 1024 * 1024; // 10 MB
+
     return new Promise((resolve) => {
+        form.on('error', (err) => {
+            console.error("Error al procesar el archivo:", err);
+            resolve({
+                statusCode: 400,
+                body: "Error al procesar el archivo",
+            });
+        });
+
         form.parse(readableStream, (err, fields, files) => {
             if (err) {
                 console.error("Error al procesar el archivo:", err);
@@ -38,6 +49,7 @@ exports.handler = async (event) => {
                 return;
             }
 
+            // Verificar si el archivo está presente en la solicitud
             if (!files.file) {
                 console.error("No se encontró ningún archivo en la solicitud.");
                 resolve({
@@ -58,16 +70,6 @@ exports.handler = async (event) => {
                 resolve({
                     statusCode: 400,
                     body: "Archivo inválido: datos faltantes (nombre o tipo MIME)",
-                });
-                return;
-            }
-
-            // Verificar que el archivo no esté vacío
-            if (file.size === 0) {
-                console.error("Archivo vacío detectado.");
-                resolve({
-                    statusCode: 400,
-                    body: "El archivo está vacío.",
                 });
                 return;
             }
