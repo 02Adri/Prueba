@@ -62,6 +62,16 @@ exports.handler = async (event) => {
                 return;
             }
 
+            // Verificar que el archivo no esté vacío
+            if (file.size === 0) {
+                console.error("Archivo vacío detectado.");
+                resolve({
+                    statusCode: 400,
+                    body: "El archivo está vacío.",
+                });
+                return;
+            }
+
             const validExtensions = [".docx"];
             const validMimeTypes = [
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
