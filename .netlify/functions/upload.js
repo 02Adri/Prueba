@@ -74,7 +74,6 @@ exports.handler = async (event) => {
         };
     }
 
-    // Verificar que la cabecera sea multipart/form-data
     const contentType = event.headers["content-type"] || event.headers["Content-Type"];
     if (!contentType || !contentType.includes("multipart/form-data")) {
         return {
@@ -83,28 +82,33 @@ exports.handler = async (event) => {
         };
     }
 
+    const uploadDir = path.join("/tmp", "uploads", "articulos");
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
     const form = new formidable.IncomingForm({
         multiples: false,
-        uploadDir: path.join("/tmp", "uploads", "articulos"),
+        uploadDir,
         keepExtensions: true,
         maxFileSize: 10 * 1024 * 1024,
     });
-
-    // Asegurarse de que el directorio de carga existe
-    if (!fs.existsSync(form.uploadDir)) {
-        fs.mkdirSync(form.uploadDir, { recursive: true });
-    }
 
     try {
         // Convertir el cuerpo en un Stream compatible con formidable
         const buffer = Buffer.from(event.body, event.isBase64Encoded ? "base64" : "utf8");
         const stream = require("stream");
         const readable = new stream.Readable();
-        readable._read = () => {}; // No-op
+        readable._read = () => {};
         readable.push(buffer);
         readable.push(null);
 
-        // Procesar la solicitud con formidable
+        // Pasar las cabeceras manualmente
+        readable.headers = {
+            ...event.headers,
+            "content-length": buffer.length.toString(), // Agregar content-length manualmente
+        };
+
         const { fields, files } = await new Promise((resolve, reject) => {
             form.parse(readable, (err, fields, files) => {
                 if (err) return reject(err);
@@ -112,7 +116,6 @@ exports.handler = async (event) => {
             });
         });
 
-        // Verificar si se recibió el archivo
         if (!files.file) {
             return {
                 statusCode: 400,
