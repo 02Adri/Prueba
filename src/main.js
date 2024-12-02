@@ -64,7 +64,7 @@ async function loadDocuments() {
         const files = await response.json();
 
         const documentsList = document.getElementById('documents-list');
-        documentsList.innerHTML = '';
+        // documentsList.innerHTML=''
 
         files.forEach(file => {
             const listItem = document.createElement('li');

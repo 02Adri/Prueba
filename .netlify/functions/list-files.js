@@ -1,33 +1,39 @@
 const fs = require("fs");
 const path = require("path");
 
-exports.handler = async () => {
-    // Ruta actualizada para apuntar a 'tmp/uploads/articulos'
+exports.handler = async (event) => {
+    const { fileName, fileContent } = JSON.parse(event.body);
+
+    if (!fileName || !fileContent) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Invalid file data" }),
+        };
+    }
+
     const directoryPath = path.join("/tmp/uploads/articulos");
 
     try {
-        // Verifica si el directorio existe antes de leerlo
+        // Asegúrate de que la carpeta existe
         if (!fs.existsSync(directoryPath)) {
-            return {
-                statusCode: 404,
-                body: JSON.stringify({ error: "Directory not found" }),
-            };
+            fs.mkdirSync(directoryPath, { recursive: true });
         }
 
-        // Lee el contenido del directorio
-        const files = fs.readdirSync(directoryPath);
-        // Filtra solo los archivos con extensión '.docx'
-        const docxFiles = files.filter((file) => file.endsWith(".docx"));
+        // Ruta completa del archivo
+        const filePath = path.join(directoryPath, fileName);
+
+        // Escribe el contenido del archivo
+        fs.writeFileSync(filePath, fileContent, "base64");
 
         return {
             statusCode: 200,
-            body: JSON.stringify(docxFiles),
+            body: JSON.stringify({ message: "File uploaded successfully", filePath }),
         };
     } catch (error) {
-        console.error("Error reading directory:", error);
+        console.error("Error writing file:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: "Error reading directory", details: error.message }),
+            body: JSON.stringify({ error: "Error writing file", details: error.message }),
         };
     }
 };
