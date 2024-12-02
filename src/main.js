@@ -21,33 +21,33 @@ document.addEventListener("DOMContentLoaded", () => {
     if (uploadForm) {
         uploadForm.addEventListener("submit", async(event) => {
             event.preventDefault();
-            const fileInput = document.getElementById('file-input');
-    const file = fileInput.files[0];
+            const fileInput = document.getElementById("file-input");
+            const file = fileInput.files[0];
 
-    if (!file || !file.name.endsWith('.docx')) {
-        alert('Solo se permiten archivos .docx');
-        return;
-    }
+            if (!file || !file.name.endsWith(".docx")) {
+                alert("Solo se permiten archivos .docx");
+                return;
+            }
 
-    const formData = new FormData();
-    formData.append('file', file);
+            const formData = new FormData();
+            formData.append("file", file);
 
-    try {
-        const response = await fetch('/.netlify/functions/upload', {
-            method: 'POST',
-            body: formData,
-        });
+            try {
+                const response = await fetch("/.netlify/functions/upload", {
+                    method: "POST",
+                    body: formData,
+                });
 
-        const result = await response.json();
-        if (response.ok) {
-            alert('Archivo subido exitosamente');
-        } else {
-            alert('Error al subir archivo: ' + result.message);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error inesperado.');
-    }
+                const result = await response.json();
+                if (response.ok) {
+                    alert("Archivo subido exitosamente");
+                } else {
+                    alert("Error al subir archivo: " + (result.error || "Desconocido"));
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error inesperado.");
+            }
         
            
         });
