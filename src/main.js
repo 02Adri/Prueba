@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (username === "admin" && password === "adminlaw") {
                 document.getElementById("upload-section").style.display = "block";
                 document.getElementById("auth-form").style.display = "none";
+                loadDocuments();
                
             } else {
                 alert("Usuario o contraseña incorrectos.");
@@ -41,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const result = await response.json();
                 if (response.ok) {
                     alert("Archivo subido exitosamente");
+                    loadDocuments();
                 } else {
                     alert("Error al subir archivo: " + (result.error || "Desconocido"));
                 }
