@@ -5,7 +5,7 @@ document.getElementById("loginButton").addEventListener("click", () => {
     if (username === "admin" && password === "adminlaw") {
       window.location.href = "documents.html";
     } else {
-      alert("Usuario o contraseña incorrectos");
+      alert("Usuario o contraseña incorrectos,intente de nuevo");
     }
   });
   
