@@ -5,3 +5,8 @@
   
 
 
+[[redirects]]
+  # Redirección para asegurar que Netlify sirva archivos correctamente
+  from = "/*"
+  to = "/index.html"
+  status = 200
