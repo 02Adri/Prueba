@@ -1,0 +1,7 @@
+[build]
+  # Especificamos el directorio donde se encuentra el código que se va a desplegar
+  publish = "client"
+  
+  
+
+
