@@ -4,7 +4,7 @@ async function fetchDocuments() {
   
   // Verificar si la respuesta es exitosa
   if (!response.ok) {
-      alert("Error al cargar los documentos");
+      alert("Error al cargar los documentos, intentalo de nuevo");
       return;
   }
   
