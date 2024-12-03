@@ -4,13 +4,4 @@
   
   
 
-[[redirects]]
-  # Asegura que el backend sea accesible desde una URL específica en Netlify
-  from = "/uploads/*"
-  to = "https://server-3-0q00.onrender.com/uploads/:splat"
-  status = 200
 
-[[redirects]]
-  from = "/documents"
-  to = "https://server-3-0q00.onrender.com/documents"
-  status = 200
