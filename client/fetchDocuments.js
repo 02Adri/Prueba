@@ -150,63 +150,68 @@ async function viewDocument(fileName) {
 // Llamar a la función para cargar los documentos al cargar la página
 fetchDocuments();
 */
+
 async function fetchDocuments() {
-  const response = await fetch("https://server-3-0q00.onrender.com/documents");
-  if (!response.ok) {
-    alert("Error al cargar los documentos, inténtalo de nuevo");
-    return;
-  }
-
-  const documents = await response.json();
-  const documentList = document.getElementById("documentList");
-
-  // Limpiar la lista antes de renderizar
-  documentList.innerHTML = "";
-
-  documents.forEach((doc) => {
-    const li = document.createElement("li");
-    const button = document.createElement("button");
-    button.textContent = `Ver contenido de ${doc}`;
-    button.style.cursor = "pointer";
-
-    // Añadir evento para cargar el contenido del documento al hacer clic
-    button.addEventListener("click", () => viewDocumentContent(doc));
-    li.appendChild(button);
-    documentList.appendChild(li);
-  });
-}
-
-async function viewDocumentContent(doc) {
   try {
-    const documentContent = document.getElementById("documentContent");
-    documentContent.innerHTML = "<p>Cargando contenido del documento...</p>";
-
-    // Descargar el archivo desde el servidor
-    const response = await fetch(`https://server-3-0q00.onrender.com/uploads/${doc}`);
+    // Obtener lista de documentos
+    const response = await fetch("https://server-3-0q00.onrender.com/documents");
     if (!response.ok) {
-      documentContent.innerHTML = "<p>Error al cargar el contenido del documento.</p>";
+      alert("Error al cargar los documentos. Inténtalo de nuevo.");
       return;
     }
+    const documents = await response.json();
 
-    const arrayBuffer = await response.arrayBuffer();
+    // Mostrar lista de documentos
+    const documentList = document.getElementById("documentList");
+    documentList.innerHTML = ""; // Limpiar lista previa
 
-    // Usar Mammoth.js para extraer texto y contenido
-    const result = await Mammoth.convertToHtml({ arrayBuffer }, {
-      convertImage: mammoth.images.inline(async (element) => {
-        const imageData = await element.read("base64");
-        return `<img src="data:image/${element.contentType};base64,${imageData}" />`;
-      })
+    documents.forEach((doc) => {
+      const li = document.createElement("li");
+      const viewButton = document.createElement("button");
+      viewButton.textContent = `Ver contenido de ${doc}`;
+      viewButton.onclick = () => loadDocument(doc);
+      li.appendChild(viewButton);
+      documentList.appendChild(li);
     });
-
-    // Mostrar el contenido y el nombre del archivo
-    documentContent.innerHTML = `
-      <div class="document-header">Archivo: ${doc}</div>
-      <div>${result.value}</div>
-    `;
   } catch (error) {
-    console.error("Error al mostrar el contenido del documento:", error);
+    console.error("Error al obtener los documentos:", error);
   }
 }
 
-// Llamar a la función para cargar los documentos
+async function loadDocument(docName) {
+  try {
+    // Obtener el archivo en formato binario
+    const response = await fetch(`https://server-3-0q00.onrender.com/uploads/${docName}`);
+    if (!response.ok) {
+      alert("Error al cargar el documento. Inténtalo de nuevo.");
+      return;
+    }
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Procesar el documento con Mammoth.js
+    const result = await Mammoth.convertToHtml({ arrayBuffer }, {
+      convertImage: mammoth.images.inline((element) => {
+        return element.read("base64").then((imageBuffer) => {
+          return {
+            src: `data:${element.contentType};base64,${imageBuffer}`,
+          };
+        });
+      }),
+    });
+
+    // Mostrar contenido del documento
+    const docViewer = document.getElementById("documentViewer");
+    document.getElementById("docName").textContent = docName;
+    document.getElementById("docContent").innerHTML = result.value;
+    
+    // Ajustar imágenes para que sean responsivas
+    const images = docViewer.querySelectorAll("img");
+    images.forEach((img) => img.classList.add("responsive-image"));
+
+  } catch (error) {
+    console.error("Error al cargar el contenido del documento:", error);
+  }
+}
+
+// Cargar la lista de documentos al iniciar
 fetchDocuments();
