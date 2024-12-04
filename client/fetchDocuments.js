@@ -151,7 +151,7 @@ async function viewDocument(fileName) {
 fetchDocuments();
 */
 
-async function fetchDocuments() {
+/*async function fetchDocuments() {
   try {
     // Obtener lista de documentos
     const response = await fetch("https://server-3-0q00.onrender.com/documents");
@@ -204,6 +204,78 @@ async function loadDocument(docName) {
     document.getElementById("docName").textContent = docName;
     document.getElementById("docContent").innerHTML = result.value;
     
+    // Ajustar imágenes para que sean responsivas
+    const images = docViewer.querySelectorAll("img");
+    images.forEach((img) => img.classList.add("responsive-image"));
+
+  } catch (error) {
+    console.error("Error al cargar el contenido del documento:", error);
+  }
+}
+
+// Cargar la lista de documentos al iniciar
+fetchDocuments();
+*/
+
+async function fetchDocuments() {
+  try {
+    // Obtener lista de documentos
+    const response = await fetch("https://server-3-0q00.onrender.com/documents");
+    if (!response.ok) {
+      alert("Error al cargar los documentos. Inténtalo de nuevo.");
+      return;
+    }
+
+    const documents = await response.json(); // Lista de documentos con nombres originales y almacenados
+
+    // Mostrar lista de documentos
+    const documentList = document.getElementById("documentList");
+    documentList.innerHTML = ""; // Limpiar lista previa
+
+    documents.forEach((doc) => {
+      const { originalName, storedName } = doc;
+
+      const li = document.createElement("li");
+      const viewButton = document.createElement("button");
+
+      // Mostrar el nombre original del archivo en el botón
+      viewButton.textContent = `Ver contenido de ${originalName}`;
+      viewButton.onclick = () => loadDocument(originalName, storedName);
+      li.appendChild(viewButton);
+      documentList.appendChild(li);
+    });
+  } catch (error) {
+    console.error("Error al obtener los documentos:", error);
+  }
+}
+
+async function loadDocument(originalName, storedName) {
+  try {
+    // Obtener el archivo en formato binario usando el nombre almacenado
+    const response = await fetch(`https://server-3-0q00.onrender.com/uploads/${storedName}`);
+    if (!response.ok) {
+      alert("Error al cargar el documento. Inténtalo de nuevo.");
+      return;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Procesar el documento con Mammoth.js
+    const result = await mammoth.convertToHtml({ arrayBuffer }, {
+      convertImage: mammoth.images.inline((element) => {
+        return element.read("base64").then((imageBuffer) => {
+          return {
+            src: `data:${element.contentType};base64,${imageBuffer}`,
+          };
+        });
+      }),
+    });
+
+    // Mostrar contenido del documento
+    const docViewer = document.getElementById("documentViewer");
+    document.getElementById("docName").textContent = originalName; // Mostrar nombre original
+    document.getElementById("docContent").innerHTML = result.value;
+
     // Ajustar imágenes para que sean responsivas
     const images = docViewer.querySelectorAll("img");
     images.forEach((img) => img.classList.add("responsive-image"));
