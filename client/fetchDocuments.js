@@ -25,7 +25,7 @@
 // Llamar a la función para cargar los documentos
 fetchDocuments();
 */
-async function fetchDocuments() {
+/*async function fetchDocuments() {
   // Hacer una solicitud GET al servidor para obtener la lista de documentos
   const response = await fetch("https://server-3-0q00.onrender.com/documents");
   
@@ -86,4 +86,66 @@ async function fetchAndProcessDocument(fileUrl) {
 }
 
 // Llamar a la función para cargar los documentos
+fetchDocuments();
+*/
+
+async function fetchDocuments() {
+  // Hacer una solicitud GET al servidor para obtener la lista de documentos
+  const response = await fetch("https://server-3-0q00.onrender.com/documents");
+  
+  // Verificar si la respuesta es exitosa
+  if (!response.ok) {
+      alert("Error al cargar los documentos, inténtalo de nuevo");
+      return;
+  }
+  
+  // Obtener la lista de documentos en formato JSON
+  const documents = await response.json();
+  
+  // Obtener el contenedor de la lista de documentos en el HTML
+  const documentList = document.getElementById("documentList");
+  documentList.innerHTML = ""; // Limpiar la lista existente
+  
+  // Iterar sobre la lista de documentos y agregarlos a la lista en HTML
+  documents.forEach((doc) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<button onclick="viewDocument('${doc}')">${doc}</button>`;
+      documentList.appendChild(li);
+  });
+}
+
+async function viewDocument(fileName) {
+  // Mostrar el nombre del archivo
+  const fileNameElement = document.getElementById("fileName");
+  fileNameElement.textContent = `Archivo: ${fileName}`;
+
+  // Hacer una solicitud para obtener el archivo .docx como ArrayBuffer
+  const response = await fetch(`https://server-3-0q00.onrender.com/uploads/${fileName}`);
+  if (!response.ok) {
+      document.getElementById("fileContent").textContent = "Error al cargar el archivo.";
+      return;
+  }
+  
+  const arrayBuffer = await response.arrayBuffer();
+  
+  // Procesar el archivo con Mammoth.js
+  mammoth.convertToHtml({ arrayBuffer }, {
+      includeDefaultStyleMap: true,
+      convertImage: mammoth.images.inline((element) => {
+          return {
+              src: `data:${element.contentType};base64,${element.read("base64")}`
+          };
+      }),
+  })
+  .then((result) => {
+      // Mostrar el contenido del archivo en el visor
+      document.getElementById("fileContent").innerHTML = result.value;
+  })
+  .catch((error) => {
+      document.getElementById("fileContent").textContent = "Error al procesar el archivo.";
+      console.error(error);
+  });
+}
+
+// Llamar a la función para cargar los documentos al cargar la página
 fetchDocuments();
