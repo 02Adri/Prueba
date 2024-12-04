@@ -89,7 +89,7 @@ async function fetchAndProcessDocument(fileUrl) {
 fetchDocuments();
 */
 
-async function fetchDocuments() {
+/*async function fetchDocuments() {
   // Hacer una solicitud GET al servidor para obtener la lista de documentos
   const response = await fetch("https://server-3-0q00.onrender.com/documents");
   
@@ -148,4 +148,65 @@ async function viewDocument(fileName) {
 }
 
 // Llamar a la función para cargar los documentos al cargar la página
+fetchDocuments();
+*/
+async function fetchDocuments() {
+  const response = await fetch("https://server-3-0q00.onrender.com/documents");
+  if (!response.ok) {
+    alert("Error al cargar los documentos, inténtalo de nuevo");
+    return;
+  }
+
+  const documents = await response.json();
+  const documentList = document.getElementById("documentList");
+
+  // Limpiar la lista antes de renderizar
+  documentList.innerHTML = "";
+
+  documents.forEach((doc) => {
+    const li = document.createElement("li");
+    const button = document.createElement("button");
+    button.textContent = `Ver contenido de ${doc}`;
+    button.style.cursor = "pointer";
+
+    // Añadir evento para cargar el contenido del documento al hacer clic
+    button.addEventListener("click", () => viewDocumentContent(doc));
+    li.appendChild(button);
+    documentList.appendChild(li);
+  });
+}
+
+async function viewDocumentContent(doc) {
+  try {
+    const documentContent = document.getElementById("documentContent");
+    documentContent.innerHTML = "<p>Cargando contenido del documento...</p>";
+
+    // Descargar el archivo desde el servidor
+    const response = await fetch(`https://server-3-0q00.onrender.com/uploads/${doc}`);
+    if (!response.ok) {
+      documentContent.innerHTML = "<p>Error al cargar el contenido del documento.</p>";
+      return;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Usar Mammoth.js para extraer texto y contenido
+    const result = await Mammoth.convertToHtml({ arrayBuffer }, {
+      convertImage: mammoth.images.inline(async (element) => {
+        const imageData = await element.read("base64");
+        return `<img src="data:image/${element.contentType};base64,${imageData}" />`;
+      })
+    });
+
+    // Mostrar el contenido y el nombre del archivo
+    documentContent.innerHTML = `
+      <div class="document-header">Archivo: ${doc}</div>
+      <div>${result.value}</div>
+    `;
+  } catch (error) {
+    console.error("Error al mostrar el contenido del documento:", error);
+  }
+}
+
+// Llamar a la función para cargar los documentos
 fetchDocuments();

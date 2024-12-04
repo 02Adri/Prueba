@@ -9,28 +9,33 @@
     #documentList {
       list-style: none;
       padding: 0;
-      margin: 10px;
-  }
-  #documentList li {
-      margin: 5px 0;
-  }
-  #contentViewer {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin: 10px;
+      width: 100%;
+      max-width: 600px;
+      margin: 10px 0;
+    }
+
+    #documentList li {
+      margin-bottom: 10px;
+    }
+
+    .document-viewer {
+      width: 100%;
       max-width: 800px;
-      background-color: #f9f9f9;
-      word-wrap: break-word;
-  }
-  h2 {
-      text-align: center;
-  }
-  @media (max-width: 768px) {
-      #contentViewer {
-          padding: 10px;
-          font-size: 14px;
-      }
-  }
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .document-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -41,10 +46,7 @@
   </form>
   <h1>Lista de Documentos</h1>
   <ul id="documentList"></ul>
-  <div id="contentViewer">
-    <h3 id="fileName"></h3>
-    <div id="fileContent">Seleccione un documento para ver el contenido.</div>
-</div>
+  <div id="documentContent" class="document-viewer"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
   <script src="./uploads.js"></script>
   <script src="./fetchDocuments.js"></script>
