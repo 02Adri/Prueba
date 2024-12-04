@@ -189,7 +189,7 @@ async function loadDocument(docName) {
     const arrayBuffer = await response.arrayBuffer();
 
     // Procesar el documento con Mammoth.js
-    const result = await Mammoth.convertToHtml({ arrayBuffer }, {
+    const result = await mammoth.convertToHtml({ arrayBuffer }, {
       convertImage: mammoth.images.inline((element) => {
         return element.read("base64").then((imageBuffer) => {
           return {
