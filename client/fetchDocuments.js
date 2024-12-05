@@ -281,7 +281,7 @@ async function loadDocument(originalName, storedName) {
     images.forEach((img) => img.classList.add("responsive-image"));
 
   } catch (error) {
-    console.error("Error al cargar el contenido del documento:", error);
+    console.error("Error al cargar el contenido del documento por lo siguiente:", error);
   }
 }
 
