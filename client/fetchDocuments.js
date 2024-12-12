@@ -245,7 +245,7 @@ async function fetchDocuments() {
       documentList.appendChild(li);
     });
   } catch (error) {
-    console.error("Error al obtener los documentos:", error);
+    console.error("Error al obtener los documentos en documents html:", error);
   }
 }
 
