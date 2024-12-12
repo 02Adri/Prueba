@@ -220,7 +220,7 @@ fetchDocuments();
 async function fetchDocuments() {
   try {
     // Obtener lista de documentos
-    const response = await fetch("https://server-3-0q00.onrender.com/documents");
+    const response = await fetch("https://server-4-8x34.onrender.com/documents");
     if (!response.ok) {
       alert("Error al cargar los documentos. Inténtalo de nuevo.");
       return;
@@ -252,7 +252,7 @@ async function fetchDocuments() {
 async function loadDocument(originalName, storedName) {
   try {
     // Obtener el archivo en formato binario usando el nombre almacenado
-    const response = await fetch(`https://server-3-0q00.onrender.com/uploads/${storedName}`);
+    const response = await fetch(`https://server-4-8x34.onrender.com/uploads/${storedName}`);
     if (!response.ok) {
       alert("Error al cargar el documento. Inténtalo de nuevo.");
       return;

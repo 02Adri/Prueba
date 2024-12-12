@@ -11,7 +11,7 @@ uploadForm.addEventListener("submit", async (e) => {
     formData.append("docxFile", fileInput); // "docxFile" coincide con el backend
 
     try {
-      const response = await fetch("https://server-3-0q00.onrender.com/upload", {
+      const response = await fetch("https://server-4-8x34.onrender.com/upload", {
         method: "POST",
         body: formData,
       });
