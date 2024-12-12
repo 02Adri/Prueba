@@ -17,7 +17,7 @@ uploadForm.addEventListener("submit", async (e) => {
       });
 
       if (response.ok) {
-        alert("Archivo subido correctamente");
+        alert("Archivo subido correctamente a la carpeta");
         window.location.href = "documents.html"; // Redirigir a la página de documentos
       } else {
         alert("Error al subir el archivo");
