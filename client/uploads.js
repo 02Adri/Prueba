@@ -29,4 +29,6 @@ uploadForm.addEventListener("submit", async (e) => {
   } else {
     alert("Por favor, selecciona un archivo.");
   }
+
+  window.location.href="view.html"
 });
