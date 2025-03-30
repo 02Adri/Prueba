@@ -30,5 +30,13 @@ uploadForm.addEventListener("submit", async (e) => {
     alert("Por favor, selecciona un archivo.");
   }
 
-  window.location.href="view.html"
+  
 });
+//Mostrar pagina de vista de articulos
+const viewForm=document.getElementById("viewForm");
+
+
+viewForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  window.location.href="view.html"; // Redirigir a la página de vista de artículos
+})
