@@ -272,13 +272,17 @@ async function loadDocument(originalName, storedName) {
     });
 
     // Mostrar contenido del documento
-    const docViewer = document.getElementById("documentViewer");
+   /* const docViewer = document.getElementById("documentViewer");
     document.getElementById("docName").textContent = originalName; // Mostrar nombre original
     document.getElementById("docContent").innerHTML = result.value;
 
     // Ajustar imágenes para que sean responsivas
     const images = docViewer.querySelectorAll("img");
-    images.forEach((img) => img.classList.add("responsive-image"));
+    images.forEach((img) => img.classList.add("responsive-image"));*/
+    document.getElementById("docName").textContent = originalName; // Mostrar nombre original
+    document.getElementById("publicationDate").textContent="Fecha de publicación del Artículo:"+ new Date().toLocaleDateString();
+    document.getElementById("docContent").innerHTML = result.value;
+    document.getElementById("documentViewer").style.display = "block"; // Mostrar el visor
 
   } catch (error) {
     console.error("Error al cargar el contenido del documento por lo siguientes elementos:", error);
