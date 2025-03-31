@@ -279,7 +279,7 @@ async function loadDocument(originalName, storedName) {
     // Ajustar imágenes para que sean responsivas
     const images = docViewer.querySelectorAll("img");
     images.forEach((img) => img.classList.add("responsive-image"));*/
-   // document.getElementById("docName").textContent = originalName; // Mostrar nombre original
+   document.getElementById("docName").textContent = originalName; // Mostrar nombre original
     document.getElementById("publicationDate").textContent="Fecha de publicación del Artículo:"+ new Date().toLocaleDateString();
     document.getElementById("docContent").innerHTML = result.value;
     document.getElementById("documentViewer").style.display = "block"; // Mostrar el visor
